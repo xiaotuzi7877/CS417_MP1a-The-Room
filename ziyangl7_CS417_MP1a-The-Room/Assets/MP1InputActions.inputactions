@@ -1,0 +1,47 @@
+{
+    "version": 1,
+    "name": "MP1InputActions",
+    "maps": [
+        {
+            "name": "Gameplay",
+            "id": "749c2e21-5acb-4749-a6e1-c24a952811a0",
+            "actions": [
+                {
+                    "name": "Quit",
+                    "type": "Button",
+                    "id": "2c8ee130-f35e-46b7-8079-26e424c30376",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "f34fe5b3-7545-4694-8ae3-233fc27ea66f",
+                    "path": "<OculusTouchController>{RightHand}/primaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Quit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6cd48625-0aaa-44c7-bca6-b6cdff16e4f4",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Quit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
