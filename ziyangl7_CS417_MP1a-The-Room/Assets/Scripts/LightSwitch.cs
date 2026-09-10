@@ -5,6 +5,9 @@ public class LightSwitch : MonoBehaviour
 {
     public InputActionReference action;
 
+    public ParticleSystem lightBurstPrefab;
+    public Transform burstPoint;
+
     private Light roomLight;
     private bool alternateColor = false;
 
@@ -33,8 +36,6 @@ public class LightSwitch : MonoBehaviour
 
     private void OnLightSwitch(InputAction.CallbackContext ctx)
     {
-        Debug.Log("LightSwitch triggered!");
-
         alternateColor = !alternateColor;
 
         if (alternateColor)
@@ -47,5 +48,16 @@ public class LightSwitch : MonoBehaviour
             roomLight.color = Color.white;
             roomLight.intensity = 2f;
         }
+
+        if (lightBurstPrefab != null && burstPoint != null)
+        {
+            Instantiate(
+                lightBurstPrefab,
+                burstPoint.position,
+                Quaternion.identity
+            );
+        }
+
+        Debug.Log("LightSwitch triggered with particle feedback!");
     }
 }
