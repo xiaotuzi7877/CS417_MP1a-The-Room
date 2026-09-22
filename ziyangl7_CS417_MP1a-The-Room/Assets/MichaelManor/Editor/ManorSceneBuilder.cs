@@ -23,6 +23,11 @@ namespace MichaelManorEditor
         private const string MaterialFolder = "Assets/MichaelManor/Materials";
         private const string WornPlasterFolder = "Assets/MichaelManor/Textures/PolyHaven/WornPlasterWall";
         private const string WornWoodFloorFolder = "Assets/MichaelManor/Textures/PolyHaven/WoodFloorWorn";
+        private const string FurnitureFolder = "Assets/MichaelManor/ThirdParty/PolyHaven/Models";
+        private const string GothicTableFolder = FurnitureFolder + "/GothicCoffeeTable";
+        private const string WoodenChairFolder = FurnitureFolder + "/WoodenChair01";
+        private const string WoodenSofaFolder = FurnitureFolder + "/PaintedWoodenSofa";
+        private const string WoodenCabinetFolder = FurnitureFolder + "/PaintedWoodenCabinet";
 
         private static readonly string[] LegacyRootNames =
         {
@@ -116,7 +121,6 @@ namespace MichaelManorEditor
                 $"{WornWoodFloorFolder}/wood_floor_worn_ao_2k.jpg");
             Material darkWood = EnsureMaterial("DarkWood", new Color(0.105f, 0.045f, 0.028f), 0f, 0.30f);
             Material woodHighlight = EnsureMaterial("WoodHighlight", new Color(0.22f, 0.075f, 0.035f), 0f, 0.25f);
-            Material velvet = EnsureMaterial("BloodVelvet", new Color(0.27f, 0.008f, 0.018f), 0f, 0.48f);
             Material gold = EnsureMaterial("AntiqueGold", new Color(0.48f, 0.28f, 0.07f), 0.62f, 0.38f);
             Material blackIron = EnsureMaterial("BlackIron", new Color(0.025f, 0.027f, 0.033f), 0.78f, 0.28f);
             Material silver = EnsureMaterial("SilverFang", new Color(0.66f, 0.72f, 0.80f), 0.82f, 0.72f);
@@ -164,6 +168,34 @@ namespace MichaelManorEditor
                 0.12f,
                 0.48f,
                 new Color(2.8f, 0.08f, 0.22f));
+            Material gothicTable = EnsureFurnitureMaterial(
+                "Furniture_GothicTable",
+                new Color(0.72f, 0.62f, 0.56f),
+                0.08f,
+                0.32f,
+                $"{GothicTableFolder}/textures/gothic_coffee_table_diff_1k.jpg",
+                $"{GothicTableFolder}/textures/gothic_coffee_table_nor_gl_1k.exr");
+            Material woodenChair = EnsureFurnitureMaterial(
+                "Furniture_WoodenChair",
+                new Color(0.68f, 0.58f, 0.52f),
+                0.06f,
+                0.28f,
+                $"{WoodenChairFolder}/textures/WoodenChair_01_diff_1k.jpg",
+                $"{WoodenChairFolder}/textures/WoodenChair_01_nor_gl_1k.exr");
+            Material woodenSofa = EnsureFurnitureMaterial(
+                "Furniture_WoodenSofa",
+                new Color(0.74f, 0.52f, 0.50f),
+                0.04f,
+                0.24f,
+                $"{WoodenSofaFolder}/textures/painted_wooden_sofa_diff_1k.jpg",
+                $"{WoodenSofaFolder}/textures/painted_wooden_sofa_nor_gl_1k.exr");
+            Material woodenCabinet = EnsureFurnitureMaterial(
+                "Furniture_WoodenCabinet",
+                new Color(0.70f, 0.56f, 0.48f),
+                0.10f,
+                0.26f,
+                $"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_diff_1k.jpg",
+                $"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_nor_gl_1k.exr");
 
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
@@ -181,7 +213,7 @@ namespace MichaelManorEditor
             Transform integration = NewRoot("Manor_Integration");
 
             BuildArchitecture(architecture, plaster, damagedPlaster, stone, floorWood, darkWood, woodHighlight, blackIron);
-            BuildDecor(decor, velvet, darkWood, gold, portraitRed, portraitBlue, stone);
+            BuildDecor(decor, gold, portraitRed, portraitBlue, gothicTable, woodenChair, woodenSofa, woodenCabinet);
             BuildLighting(lighting, blackIron, gold, candleGlow);
             BuildOrrery(
                 gold,
@@ -281,12 +313,13 @@ namespace MichaelManorEditor
 
         private static void BuildDecor(
             Transform parent,
-            Material velvet,
-            Material darkWood,
             Material gold,
             Material portraitRed,
             Material portraitBlue,
-            Material stone)
+            Material gothicTable,
+            Material woodenChair,
+            Material woodenSofa,
+            Material woodenCabinet)
         {
             float[] paintingZ = { -10f, -3.2f, 4.2f, 11f };
             for (int i = 0; i < paintingZ.Length; i++)
@@ -308,15 +341,94 @@ namespace MichaelManorEditor
                     gold);
             }
 
-            CreateSofa("VelvetSofa_Left", parent, new Vector3(-5.7f, 0f, -1.5f), Quaternion.Euler(0f, 90f, 0f), velvet, darkWood);
-            CreateSofa("VelvetSofa_Right", parent, new Vector3(5.7f, 0f, 3.8f), Quaternion.Euler(0f, -90f, 0f), velvet, darkWood);
+            string sofaPath = $"{WoodenSofaFolder}/painted_wooden_sofa_1k.fbx";
+            string tablePath = $"{GothicTableFolder}/gothic_coffee_table_1k.fbx";
+            string chairPath = $"{WoodenChairFolder}/WoodenChair_01_1k.fbx";
+            string cabinetPath = $"{WoodenCabinetFolder}/painted_wooden_cabinet_1k.fbx";
 
-            Transform table = new GameObject("OccultReadingTable").transform;
-            table.SetParent(parent, false);
-            table.localPosition = new Vector3(0f, 0f, -5.5f);
-            CreatePrimitive("TableTop", PrimitiveType.Cylinder, table, new Vector3(0f, 1.05f, 0f), new Vector3(1.65f, 0.12f, 1.65f), darkWood);
-            CreatePrimitive("TableStem", PrimitiveType.Cylinder, table, new Vector3(0f, 0.55f, 0f), new Vector3(0.22f, 0.55f, 0.22f), gold);
-            CreatePrimitive("TableBase", PrimitiveType.Cylinder, table, new Vector3(0f, 0.12f, 0f), new Vector3(0.75f, 0.12f, 0.75f), stone);
+            PlaceFurnitureModel(
+                "PaintedWoodenSofa_Left",
+                sofaPath,
+                parent,
+                new Vector3(-7.15f, 0.12f, -2.0f),
+                Quaternion.Euler(0f, -90f, 0f),
+                1.35f,
+                woodenSofa);
+            PlaceFurnitureModel(
+                "PaintedWoodenSofa_Right",
+                sofaPath,
+                parent,
+                new Vector3(7.15f, 0.12f, 3.6f),
+                Quaternion.Euler(0f, 90f, 0f),
+                1.35f,
+                woodenSofa);
+
+            PlaceFurnitureModel(
+                "GothicCoffeeTable_Left",
+                tablePath,
+                parent,
+                new Vector3(-5.15f, 0.12f, -2.0f),
+                Quaternion.Euler(0f, 90f, 0f),
+                0.78f,
+                gothicTable);
+            PlaceFurnitureModel(
+                "GothicCoffeeTable_Right",
+                tablePath,
+                parent,
+                new Vector3(5.15f, 0.12f, 3.6f),
+                Quaternion.Euler(0f, -90f, 0f),
+                0.78f,
+                gothicTable);
+
+            PlaceFurnitureModel(
+                "GothicChair_LeftFacing",
+                chairPath,
+                parent,
+                new Vector3(-3.55f, 0.12f, -2.0f),
+                Quaternion.Euler(0f, 90f, 0f),
+                1.75f,
+                woodenChair);
+            PlaceFurnitureModel(
+                "GothicChair_LeftCorner",
+                chairPath,
+                parent,
+                new Vector3(-5.15f, 0.12f, -3.75f),
+                Quaternion.Euler(0f, 180f, 0f),
+                1.75f,
+                woodenChair);
+            PlaceFurnitureModel(
+                "GothicChair_RightFacing",
+                chairPath,
+                parent,
+                new Vector3(3.55f, 0.12f, 3.6f),
+                Quaternion.Euler(0f, -90f, 0f),
+                1.75f,
+                woodenChair);
+            PlaceFurnitureModel(
+                "GothicChair_RightCorner",
+                chairPath,
+                parent,
+                new Vector3(5.15f, 0.12f, 5.35f),
+                Quaternion.identity,
+                1.75f,
+                woodenChair);
+
+            PlaceFurnitureModel(
+                "PaintedWoodenCabinet_Left",
+                cabinetPath,
+                parent,
+                new Vector3(-8.25f, 0.12f, 8.2f),
+                Quaternion.Euler(0f, -90f, 0f),
+                2.65f,
+                woodenCabinet);
+            PlaceFurnitureModel(
+                "PaintedWoodenCabinet_Right",
+                cabinetPath,
+                parent,
+                new Vector3(8.25f, 0.12f, -7.6f),
+                Quaternion.Euler(0f, 90f, 0f),
+                2.65f,
+                woodenCabinet);
 
             CreatePrimitive("Runner", PrimitiveType.Cube, parent, new Vector3(0f, 0.11f, 1.5f), new Vector3(3.4f, 0.025f, 23f), portraitRed, false);
         }
@@ -591,24 +703,115 @@ namespace MichaelManorEditor
             CreatePrimitive("FrameRight", PrimitiveType.Cube, root, new Vector3(1.48f, 0f, -0.08f), new Vector3(0.18f, 2.55f, 0.18f), frame, false);
         }
 
-        private static void CreateSofa(
+        private static GameObject PlaceFurnitureModel(
             string name,
+            string modelPath,
             Transform parent,
             Vector3 position,
             Quaternion rotation,
-            Material velvet,
-            Material wood)
+            float desiredHeight,
+            Material material)
         {
-            Transform root = new GameObject(name).transform;
-            root.SetParent(parent, false);
-            root.position = position;
-            root.rotation = rotation;
-            CreatePrimitive("Seat", PrimitiveType.Cube, root, new Vector3(0f, 0.72f, 0f), new Vector3(3.4f, 0.48f, 1.15f), velvet);
-            CreatePrimitive("Back", PrimitiveType.Cube, root, new Vector3(0f, 1.45f, 0.48f), new Vector3(3.4f, 1.55f, 0.30f), velvet);
-            CreatePrimitive("ArmLeft", PrimitiveType.Cube, root, new Vector3(-1.65f, 1.0f, 0f), new Vector3(0.32f, 0.85f, 1.25f), velvet);
-            CreatePrimitive("ArmRight", PrimitiveType.Cube, root, new Vector3(1.65f, 1.0f, 0f), new Vector3(0.32f, 0.85f, 1.25f), velvet);
-            CreatePrimitive("LegLeft", PrimitiveType.Cube, root, new Vector3(-1.28f, 0.23f, 0f), new Vector3(0.22f, 0.46f, 0.22f), wood);
-            CreatePrimitive("LegRight", PrimitiveType.Cube, root, new Vector3(1.28f, 0.23f, 0f), new Vector3(0.22f, 0.46f, 0.22f), wood);
+            GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+            if (modelAsset == null)
+            {
+                Debug.LogError($"Furniture model was not found: {modelPath}");
+                return null;
+            }
+
+            GameObject instance = PrefabUtility.InstantiatePrefab(modelAsset) as GameObject;
+            if (instance == null)
+            {
+                Debug.LogError($"Furniture model could not be instantiated: {modelPath}");
+                return null;
+            }
+
+            instance.name = name;
+            instance.transform.SetParent(parent, false);
+            instance.transform.localPosition = position;
+            instance.transform.localRotation = rotation;
+            instance.transform.localScale = Vector3.one;
+            AssignMaterial(instance, material);
+
+            Bounds initialBounds = CalculateWorldBounds(instance);
+            if (initialBounds.size.y > 0.001f)
+            {
+                float scale = desiredHeight / initialBounds.size.y;
+                instance.transform.localScale *= scale;
+            }
+
+            Bounds placedBounds = CalculateWorldBounds(instance);
+            float floorHeight = parent.TransformPoint(position).y;
+            instance.transform.position += Vector3.up * (floorHeight - placedBounds.min.y);
+
+            Bounds localBounds = CalculateLocalBounds(instance);
+            BoxCollider collider = instance.GetComponent<BoxCollider>();
+            if (collider == null)
+            {
+                collider = instance.AddComponent<BoxCollider>();
+            }
+
+            collider.center = localBounds.center;
+            collider.size = localBounds.size;
+            return instance;
+        }
+
+        private static void AssignMaterial(GameObject root, Material material)
+        {
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] materials = renderer.sharedMaterials;
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    materials[i] = material;
+                }
+
+                renderer.sharedMaterials = materials;
+                renderer.shadowCastingMode = ShadowCastingMode.On;
+                renderer.receiveShadows = true;
+            }
+        }
+
+        private static Bounds CalculateWorldBounds(GameObject root)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0)
+            {
+                return new Bounds(root.transform.position, Vector3.one);
+            }
+
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            return bounds;
+        }
+
+        private static Bounds CalculateLocalBounds(GameObject root)
+        {
+            Bounds worldBounds = CalculateWorldBounds(root);
+            Vector3 min = worldBounds.min;
+            Vector3 max = worldBounds.max;
+            Bounds localBounds = new Bounds(root.transform.InverseTransformPoint(min), Vector3.zero);
+
+            for (int x = 0; x <= 1; x++)
+            {
+                for (int y = 0; y <= 1; y++)
+                {
+                    for (int z = 0; z <= 1; z++)
+                    {
+                        Vector3 worldPoint = new Vector3(
+                            x == 0 ? min.x : max.x,
+                            y == 0 ? min.y : max.y,
+                            z == 0 ? min.z : max.z);
+                        localBounds.Encapsulate(root.transform.InverseTransformPoint(worldPoint));
+                    }
+                }
+            }
+
+            return localBounds;
         }
 
         private static void CreateChandelier(
@@ -836,6 +1039,28 @@ namespace MichaelManorEditor
             return material;
         }
 
+        private static Material EnsureFurnitureMaterial(
+            string name,
+            Color tint,
+            float metallic,
+            float smoothness,
+            string baseMapPath,
+            string normalMapPath)
+        {
+            Material material = EnsureMaterial(name, tint, metallic, smoothness);
+            Texture2D baseMap = AssetDatabase.LoadAssetAtPath<Texture2D>(baseMapPath);
+            Texture2D normalMap = AssetDatabase.LoadAssetAtPath<Texture2D>(normalMapPath);
+
+            material.SetTexture("_BaseMap", baseMap);
+            material.SetTextureScale("_BaseMap", Vector2.one);
+            material.SetTexture("_BumpMap", normalMap);
+            material.SetTextureScale("_BumpMap", Vector2.one);
+            material.SetFloat("_BumpScale", 0.82f);
+            material.EnableKeyword("_NORMALMAP");
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
         private static void ConfigurePbrTextureImports()
         {
             ConfigureTextureImport($"{WornPlasterFolder}/worn_plaster_wall_diff_2k.jpg", TextureImporterType.Default, true, 4);
@@ -844,6 +1069,24 @@ namespace MichaelManorEditor
             ConfigureTextureImport($"{WornWoodFloorFolder}/wood_floor_worn_diff_2k.jpg", TextureImporterType.Default, true, 8);
             ConfigureTextureImport($"{WornWoodFloorFolder}/wood_floor_worn_nor_gl_2k.jpg", TextureImporterType.NormalMap, false, 8);
             ConfigureTextureImport($"{WornWoodFloorFolder}/wood_floor_worn_ao_2k.jpg", TextureImporterType.Default, false, 4);
+
+            ConfigureTextureImport($"{GothicTableFolder}/textures/gothic_coffee_table_diff_1k.jpg", TextureImporterType.Default, true, 4);
+            ConfigureTextureImport($"{GothicTableFolder}/textures/gothic_coffee_table_nor_gl_1k.exr", TextureImporterType.NormalMap, false, 4);
+            ConfigureTextureImport($"{GothicTableFolder}/textures/gothic_coffee_table_rough_1k.exr", TextureImporterType.Default, false, 2);
+
+            ConfigureTextureImport($"{WoodenChairFolder}/textures/WoodenChair_01_diff_1k.jpg", TextureImporterType.Default, true, 4);
+            ConfigureTextureImport($"{WoodenChairFolder}/textures/WoodenChair_01_nor_gl_1k.exr", TextureImporterType.NormalMap, false, 4);
+            ConfigureTextureImport($"{WoodenChairFolder}/textures/WoodenChair_01_roughness_1k.jpg", TextureImporterType.Default, false, 2);
+            ConfigureTextureImport($"{WoodenChairFolder}/textures/WoodenChair_01_metallic_1k.exr", TextureImporterType.Default, false, 2);
+
+            ConfigureTextureImport($"{WoodenSofaFolder}/textures/painted_wooden_sofa_diff_1k.jpg", TextureImporterType.Default, true, 4);
+            ConfigureTextureImport($"{WoodenSofaFolder}/textures/painted_wooden_sofa_nor_gl_1k.exr", TextureImporterType.NormalMap, false, 4);
+            ConfigureTextureImport($"{WoodenSofaFolder}/textures/painted_wooden_sofa_rough_1k.exr", TextureImporterType.Default, false, 2);
+
+            ConfigureTextureImport($"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_diff_1k.jpg", TextureImporterType.Default, true, 4);
+            ConfigureTextureImport($"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_nor_gl_1k.exr", TextureImporterType.NormalMap, false, 4);
+            ConfigureTextureImport($"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_rough_1k.exr", TextureImporterType.Default, false, 2);
+            ConfigureTextureImport($"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_metal_1k.exr", TextureImporterType.Default, false, 2);
         }
 
         private static void ConfigureTextureImport(
