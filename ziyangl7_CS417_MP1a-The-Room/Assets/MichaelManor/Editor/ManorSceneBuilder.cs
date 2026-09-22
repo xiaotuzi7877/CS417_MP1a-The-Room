@@ -350,16 +350,16 @@ namespace MichaelManorEditor
                 "PaintedWoodenSofa_Left",
                 sofaPath,
                 parent,
-                new Vector3(-7.15f, 0.12f, -2.0f),
-                Quaternion.Euler(0f, -90f, 0f),
+                new Vector3(-7.10f, 0.12f, -3.0f),
+                Quaternion.Euler(0f, 90f, 0f),
                 1.35f,
                 woodenSofa);
             PlaceFurnitureModel(
                 "PaintedWoodenSofa_Right",
                 sofaPath,
                 parent,
-                new Vector3(7.15f, 0.12f, 3.6f),
-                Quaternion.Euler(0f, 90f, 0f),
+                new Vector3(7.10f, 0.12f, 3.0f),
+                Quaternion.Euler(0f, -90f, 0f),
                 1.35f,
                 woodenSofa);
 
@@ -367,7 +367,7 @@ namespace MichaelManorEditor
                 "GothicCoffeeTable_Left",
                 tablePath,
                 parent,
-                new Vector3(-5.15f, 0.12f, -2.0f),
+                new Vector3(-5.20f, 0.12f, -3.0f),
                 Quaternion.Euler(0f, 90f, 0f),
                 0.78f,
                 gothicTable);
@@ -375,7 +375,7 @@ namespace MichaelManorEditor
                 "GothicCoffeeTable_Right",
                 tablePath,
                 parent,
-                new Vector3(5.15f, 0.12f, 3.6f),
+                new Vector3(5.20f, 0.12f, 3.0f),
                 Quaternion.Euler(0f, -90f, 0f),
                 0.78f,
                 gothicTable);
@@ -384,32 +384,32 @@ namespace MichaelManorEditor
                 "GothicChair_LeftFacing",
                 chairPath,
                 parent,
-                new Vector3(-3.55f, 0.12f, -2.0f),
-                Quaternion.Euler(0f, 90f, 0f),
+                new Vector3(-3.55f, 0.12f, -3.0f),
+                Quaternion.Euler(0f, -90f, 0f),
                 1.75f,
                 woodenChair);
             PlaceFurnitureModel(
                 "GothicChair_LeftCorner",
                 chairPath,
                 parent,
-                new Vector3(-5.15f, 0.12f, -3.75f),
-                Quaternion.Euler(0f, 180f, 0f),
+                new Vector3(-5.15f, 0.12f, -4.75f),
+                Quaternion.Euler(0f, 0f, 0f),
                 1.75f,
                 woodenChair);
             PlaceFurnitureModel(
                 "GothicChair_RightFacing",
                 chairPath,
                 parent,
-                new Vector3(3.55f, 0.12f, 3.6f),
-                Quaternion.Euler(0f, -90f, 0f),
+                new Vector3(3.55f, 0.12f, 3.0f),
+                Quaternion.Euler(0f, 90f, 0f),
                 1.75f,
                 woodenChair);
             PlaceFurnitureModel(
                 "GothicChair_RightCorner",
                 chairPath,
                 parent,
-                new Vector3(5.15f, 0.12f, 5.35f),
-                Quaternion.identity,
+                new Vector3(5.15f, 0.12f, 4.75f),
+                Quaternion.Euler(0f, 180f, 0f),
                 1.75f,
                 woodenChair);
 
@@ -417,16 +417,16 @@ namespace MichaelManorEditor
                 "PaintedWoodenCabinet_Left",
                 cabinetPath,
                 parent,
-                new Vector3(-8.25f, 0.12f, 8.2f),
-                Quaternion.Euler(0f, -90f, 0f),
+                new Vector3(-8.20f, 0.12f, 8.7f),
+                Quaternion.Euler(0f, 90f, 0f),
                 2.65f,
                 woodenCabinet);
             PlaceFurnitureModel(
                 "PaintedWoodenCabinet_Right",
                 cabinetPath,
                 parent,
-                new Vector3(8.25f, 0.12f, -7.6f),
-                Quaternion.Euler(0f, 90f, 0f),
+                new Vector3(8.20f, 0.12f, -8.7f),
+                Quaternion.Euler(0f, -90f, 0f),
                 2.65f,
                 woodenCabinet);
 
@@ -1087,6 +1087,29 @@ namespace MichaelManorEditor
             ConfigureTextureImport($"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_nor_gl_1k.exr", TextureImporterType.NormalMap, false, 4);
             ConfigureTextureImport($"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_rough_1k.exr", TextureImporterType.Default, false, 2);
             ConfigureTextureImport($"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_metal_1k.exr", TextureImporterType.Default, false, 2);
+
+            ConfigureFurnitureModelImport($"{GothicTableFolder}/gothic_coffee_table_1k.fbx");
+            ConfigureFurnitureModelImport($"{WoodenChairFolder}/WoodenChair_01_1k.fbx");
+            ConfigureFurnitureModelImport($"{WoodenSofaFolder}/painted_wooden_sofa_1k.fbx");
+            ConfigureFurnitureModelImport($"{WoodenCabinetFolder}/painted_wooden_cabinet_1k.fbx");
+        }
+
+        private static void ConfigureFurnitureModelImport(string path)
+        {
+            ModelImporter importer = AssetImporter.GetAtPath(path) as ModelImporter;
+            if (importer == null)
+            {
+                Debug.LogWarning($"Model importer was not found for {path}");
+                return;
+            }
+
+            if (!importer.bakeAxisConversion)
+            {
+                // Poly Haven FBX files are Z-up. Baking the axis conversion keeps
+                // their furniture upright when the scene builder applies yaw.
+                importer.bakeAxisConversion = true;
+                importer.SaveAndReimport();
+            }
         }
 
         private static void ConfigureTextureImport(
