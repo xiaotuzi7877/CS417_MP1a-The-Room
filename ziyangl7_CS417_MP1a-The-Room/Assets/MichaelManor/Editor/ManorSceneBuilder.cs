@@ -21,6 +21,8 @@ namespace MichaelManorEditor
         private const string SourceScenePath = "Assets/Scenes/SampleScene.unity";
         private const string TargetScenePath = "Assets/Scenes/MichaelManorHall.unity";
         private const string MaterialFolder = "Assets/MichaelManor/Materials";
+        private const string WornPlasterFolder = "Assets/MichaelManor/Textures/PolyHaven/WornPlasterWall";
+        private const string WornWoodFloorFolder = "Assets/MichaelManor/Textures/PolyHaven/WoodFloorWorn";
 
         private static readonly string[] LegacyRootNames =
         {
@@ -78,14 +80,40 @@ namespace MichaelManorEditor
             }
 
             AssetDatabase.Refresh();
+            ConfigurePbrTextureImports();
             Scene scene = EditorSceneManager.OpenScene(TargetScenePath, OpenSceneMode.Single);
 
             DeleteRoots(scene, LegacyRootNames);
             DeleteRoots(scene, GeneratedRootNames);
 
-            Material plaster = EnsureMaterial("AgedPlaster", new Color(0.33f, 0.30f, 0.28f), 0f, 0.18f);
-            Material damagedPlaster = EnsureMaterial("DamagedPlaster", new Color(0.20f, 0.18f, 0.17f), 0f, 0.10f);
+            Material plaster = EnsureTexturedMaterial(
+                "AgedPlaster",
+                new Color(0.62f, 0.58f, 0.54f),
+                0.08f,
+                0.18f,
+                new Vector2(6f, 3f),
+                $"{WornPlasterFolder}/worn_plaster_wall_diff_2k.jpg",
+                $"{WornPlasterFolder}/worn_plaster_wall_nor_gl_2k.jpg",
+                $"{WornPlasterFolder}/worn_plaster_wall_ao_2k.jpg");
+            Material damagedPlaster = EnsureTexturedMaterial(
+                "DamagedPlaster",
+                new Color(0.40f, 0.35f, 0.33f),
+                0.12f,
+                0.12f,
+                new Vector2(5f, 3f),
+                $"{WornPlasterFolder}/worn_plaster_wall_diff_2k.jpg",
+                $"{WornPlasterFolder}/worn_plaster_wall_nor_gl_2k.jpg",
+                $"{WornPlasterFolder}/worn_plaster_wall_ao_2k.jpg");
             Material stone = EnsureMaterial("ManorStone", new Color(0.13f, 0.14f, 0.16f), 0f, 0.15f);
+            Material floorWood = EnsureTexturedMaterial(
+                "WornWoodFloor",
+                new Color(0.52f, 0.39f, 0.31f),
+                0.04f,
+                0.24f,
+                new Vector2(6f, 10f),
+                $"{WornWoodFloorFolder}/wood_floor_worn_diff_2k.jpg",
+                $"{WornWoodFloorFolder}/wood_floor_worn_nor_gl_2k.jpg",
+                $"{WornWoodFloorFolder}/wood_floor_worn_ao_2k.jpg");
             Material darkWood = EnsureMaterial("DarkWood", new Color(0.105f, 0.045f, 0.028f), 0f, 0.30f);
             Material woodHighlight = EnsureMaterial("WoodHighlight", new Color(0.22f, 0.075f, 0.035f), 0f, 0.25f);
             Material velvet = EnsureMaterial("BloodVelvet", new Color(0.27f, 0.008f, 0.018f), 0f, 0.48f);
@@ -122,7 +150,7 @@ namespace MichaelManorEditor
             Transform puzzle = NewRoot("Manor_Puzzle");
             Transform integration = NewRoot("Manor_Integration");
 
-            BuildArchitecture(architecture, plaster, damagedPlaster, stone, darkWood, woodHighlight, blackIron);
+            BuildArchitecture(architecture, plaster, damagedPlaster, stone, floorWood, darkWood, woodHighlight, blackIron);
             BuildDecor(decor, velvet, darkWood, gold, portraitRed, portraitBlue, stone);
             BuildLighting(lighting, blackIron, gold, candleGlow);
             BuildOrrery(scene, gold, blackIron, spectralGlow);
@@ -143,7 +171,7 @@ namespace MichaelManorEditor
         [MenuItem("Tools/Michael Manor/Preview Puzzle Completion")]
         private static void PreviewPuzzleCompletion()
         {
-            ManorPuzzleSocket puzzleSocket = Object.FindFirstObjectByType<ManorPuzzleSocket>();
+            ManorPuzzleSocket puzzleSocket = Object.FindAnyObjectByType<ManorPuzzleSocket>();
             if (puzzleSocket != null)
             {
                 puzzleSocket.SolvePuzzle();
@@ -161,40 +189,30 @@ namespace MichaelManorEditor
             Material plaster,
             Material damagedPlaster,
             Material stone,
+            Material floorWood,
             Material darkWood,
             Material woodHighlight,
             Material blackIron)
         {
             CreatePrimitive("Floor_Base", PrimitiveType.Cube, parent, new Vector3(0f, -0.3f, 0f), new Vector3(18f, 0.6f, 32f), stone);
-            CreatePrimitive("Floor_Wood", PrimitiveType.Cube, parent, new Vector3(0f, 0.03f, 0f), new Vector3(17.2f, 0.08f, 31.2f), darkWood, false);
+            CreatePrimitive("Floor_Wood", PrimitiveType.Cube, parent, new Vector3(0f, 0.03f, 0f), new Vector3(17.2f, 0.08f, 31.2f), floorWood, false);
+            CreatePrimitive("FloorBorder_Left", PrimitiveType.Cube, parent, new Vector3(-8.45f, 0.10f, 0f), new Vector3(0.22f, 0.12f, 31.1f), darkWood, false);
+            CreatePrimitive("FloorBorder_Right", PrimitiveType.Cube, parent, new Vector3(8.45f, 0.10f, 0f), new Vector3(0.22f, 0.12f, 31.1f), darkWood, false);
 
-            for (int i = -8; i <= 8; i++)
+            CreatePrimitive("Wall_Left", PrimitiveType.Cube, parent, new Vector3(-9f, 6.6f, 0f), new Vector3(0.45f, 13.2f, 32f), plaster);
+            CreatePrimitive("Wall_Right", PrimitiveType.Cube, parent, new Vector3(9f, 6.6f, 0f), new Vector3(0.45f, 13.2f, 32f), plaster);
+            CreatePrimitive("Wall_Entry", PrimitiveType.Cube, parent, new Vector3(0f, 6.6f, -16f), new Vector3(18f, 13.2f, 0.45f), damagedPlaster);
+
+            CreatePrimitive("Wall_Exit_Left", PrimitiveType.Cube, parent, new Vector3(-5.6f, 6.6f, 16f), new Vector3(6.8f, 13.2f, 0.45f), damagedPlaster);
+            CreatePrimitive("Wall_Exit_Right", PrimitiveType.Cube, parent, new Vector3(5.6f, 6.6f, 16f), new Vector3(6.8f, 13.2f, 0.45f), damagedPlaster);
+            CreatePrimitive("Wall_Exit_Arch", PrimitiveType.Cube, parent, new Vector3(0f, 10.1f, 16f), new Vector3(4.4f, 6.2f, 0.45f), stone);
+
+            CreatePrimitive("Ceiling", PrimitiveType.Cube, parent, new Vector3(0f, 13.35f, 0f), new Vector3(18.4f, 0.4f, 32.4f), damagedPlaster);
+
+            float[] beamPositions = { -13f, -8.7f, -4.35f, 4.35f, 8.7f, 13f };
+            for (int i = 0; i < beamPositions.Length; i++)
             {
-                float x = i;
-                CreatePrimitive(
-                    $"Floor_Plank_{i + 8:00}",
-                    PrimitiveType.Cube,
-                    parent,
-                    new Vector3(x, 0.085f, 0f),
-                    new Vector3(0.035f, 0.012f, 31.1f),
-                    woodHighlight,
-                    false);
-            }
-
-            CreatePrimitive("Wall_Left", PrimitiveType.Cube, parent, new Vector3(-9f, 5f, 0f), new Vector3(0.45f, 10f, 32f), plaster);
-            CreatePrimitive("Wall_Right", PrimitiveType.Cube, parent, new Vector3(9f, 5f, 0f), new Vector3(0.45f, 10f, 32f), plaster);
-            CreatePrimitive("Wall_Entry", PrimitiveType.Cube, parent, new Vector3(0f, 5f, -16f), new Vector3(18f, 10f, 0.45f), damagedPlaster);
-
-            CreatePrimitive("Wall_Exit_Left", PrimitiveType.Cube, parent, new Vector3(-5.6f, 5f, 16f), new Vector3(6.8f, 10f, 0.45f), damagedPlaster);
-            CreatePrimitive("Wall_Exit_Right", PrimitiveType.Cube, parent, new Vector3(5.6f, 5f, 16f), new Vector3(6.8f, 10f, 0.45f), damagedPlaster);
-            CreatePrimitive("Wall_Exit_Arch", PrimitiveType.Cube, parent, new Vector3(0f, 8.2f, 16f), new Vector3(4.4f, 3.6f, 0.45f), stone);
-
-            CreatePrimitive("Ceiling", PrimitiveType.Cube, parent, new Vector3(0f, 10.1f, 0f), new Vector3(18.4f, 0.35f, 32.4f), damagedPlaster);
-
-            for (int i = -3; i <= 3; i++)
-            {
-                float z = i * 4.25f;
-                CreatePrimitive($"Ceiling_Beam_{i + 3:00}", PrimitiveType.Cube, parent, new Vector3(0f, 9.72f, z), new Vector3(18.1f, 0.38f, 0.42f), darkWood, false);
+                CreatePrimitive($"Ceiling_Beam_{i:00}", PrimitiveType.Cube, parent, new Vector3(0f, 12.92f, beamPositions[i]), new Vector3(18.1f, 0.42f, 0.48f), darkWood, false);
             }
 
             for (int side = -1; side <= 1; side += 2)
@@ -203,13 +221,14 @@ namespace MichaelManorEditor
                 for (int i = -2; i <= 2; i++)
                 {
                     float z = i * 6.2f;
-                    CreatePrimitive($"Pilaster_{side}_{i}", PrimitiveType.Cylinder, parent, new Vector3(x, 4.5f, z), new Vector3(0.48f, 4.5f, 0.48f), stone);
+                    CreatePrimitive($"Pilaster_{side}_{i}", PrimitiveType.Cylinder, parent, new Vector3(x, 5.9f, z), new Vector3(0.48f, 5.9f, 0.48f), stone);
                     CreatePrimitive($"PilasterBase_{side}_{i}", PrimitiveType.Cube, parent, new Vector3(x, 0.4f, z), new Vector3(1.2f, 0.8f, 1.2f), stone);
-                    CreatePrimitive($"PilasterCap_{side}_{i}", PrimitiveType.Cube, parent, new Vector3(x, 8.6f, z), new Vector3(1.3f, 0.55f, 1.3f), stone, false);
+                    CreatePrimitive($"PilasterCap_{side}_{i}", PrimitiveType.Cube, parent, new Vector3(x, 11.55f, z), new Vector3(1.3f, 0.55f, 1.3f), stone, false);
                 }
 
                 CreatePrimitive($"Wainscot_{side}", PrimitiveType.Cube, parent, new Vector3(x, 1.65f, 0f), new Vector3(0.18f, 2.8f, 30.8f), darkWood, false);
                 CreatePrimitive($"ChairRail_{side}", PrimitiveType.Cube, parent, new Vector3(x - side * 0.05f, 3.1f, 0f), new Vector3(0.22f, 0.18f, 31f), woodHighlight, false);
+                CreatePrimitive($"UpperCornice_{side}", PrimitiveType.Cube, parent, new Vector3(x - side * 0.05f, 11.95f, 0f), new Vector3(0.28f, 0.28f, 31f), woodHighlight, false);
             }
 
             Transform door = new GameObject("ExitDoor_Root").transform;
@@ -276,8 +295,8 @@ namespace MichaelManorEditor
             moonlight.intensity = 0.34f;
             moonlight.shadows = LightShadows.Soft;
 
-            CreateChandelier("Chandelier_North", parent, new Vector3(0f, 8.55f, 6.5f), blackIron, gold, candleGlow);
-            CreateChandelier("Chandelier_South", parent, new Vector3(0f, 8.55f, -7.5f), blackIron, gold, candleGlow);
+            CreateChandelier("Chandelier_North", parent, new Vector3(0f, 11.45f, 8.7f), blackIron, gold, candleGlow);
+            CreateChandelier("Chandelier_South", parent, new Vector3(0f, 11.45f, -8.7f), blackIron, gold, candleGlow);
 
             float[] zPositions = { -11f, -3.5f, 4f, 11f };
             foreach (float z in zPositions)
@@ -290,24 +309,26 @@ namespace MichaelManorEditor
         private static void BuildOrrery(Scene scene, Material gold, Material blackIron, Material spectralGlow)
         {
             Transform orrery = NewRoot("Celestial_Orrery");
-            orrery.position = new Vector3(0f, 8.05f, 0f);
+            orrery.position = new Vector3(0f, 9.35f, 0f);
 
-            CreateOrbitRing("OrbitRing_Horizontal", orrery, Quaternion.identity, 3.7f, gold);
-            CreateOrbitRing("OrbitRing_TiltA", orrery, Quaternion.Euler(62f, 0f, 18f), 3.15f, gold);
-            CreateOrbitRing("OrbitRing_TiltB", orrery, Quaternion.Euler(0f, 0f, 72f), 2.65f, blackIron);
+            CreatePrimitive("SuspensionRod", PrimitiveType.Cylinder, orrery, new Vector3(0f, 1.9f, 0f), new Vector3(0.09f, 1.8f, 0.09f), blackIron, false);
+            CreatePrimitive("SuspensionHub", PrimitiveType.Sphere, orrery, new Vector3(0f, 0.35f, 0f), Vector3.one * 0.30f, gold, false);
+            CreateOrbitRing("OrbitRing_Horizontal", orrery, Quaternion.identity, 4.45f, gold);
+            CreateOrbitRing("OrbitRing_TiltA", orrery, Quaternion.Euler(62f, 0f, 18f), 3.8f, gold);
+            CreateOrbitRing("OrbitRing_TiltB", orrery, Quaternion.Euler(0f, 0f, 72f), 3.2f, blackIron);
 
             GameObject sun = CreatePrimitive("Sun", PrimitiveType.Sphere, orrery, Vector3.zero, Vector3.one * 0.8f, spectralGlow, false);
             Light sunLight = sun.AddComponent<Light>();
             sunLight.type = LightType.Point;
             sunLight.color = new Color(0.15f, 0.55f, 1f);
             sunLight.intensity = 320f;
-            sunLight.range = 8f;
+            sunLight.range = 10f;
 
             GameObject planet = FindRoot(scene, "Planet");
             if (planet != null)
             {
                 planet.transform.SetParent(orrery, false);
-                planet.transform.localPosition = new Vector3(2.45f, 0f, 0f);
+                planet.transform.localPosition = new Vector3(3.05f, 0f, 0f);
                 planet.transform.localScale = Vector3.one * 0.7f;
                 Renderer renderer = planet.GetComponent<Renderer>();
                 if (renderer != null)
@@ -318,7 +339,7 @@ namespace MichaelManorEditor
                 Transform moon = planet.transform.Find("Moon");
                 if (moon != null)
                 {
-                    moon.localPosition = new Vector3(1.35f, 0f, 0f);
+                    moon.localPosition = new Vector3(1.15f, 0f, 0f);
                     moon.localScale = Vector3.one * 0.35f;
                 }
             }
@@ -327,7 +348,7 @@ namespace MichaelManorEditor
             if (comet != null)
             {
                 comet.transform.SetParent(orrery, false);
-                comet.transform.localPosition = new Vector3(4.25f, 0.1f, 0f);
+                comet.transform.localPosition = new Vector3(4.45f, 0.1f, 0f);
                 comet.transform.localScale = Vector3.one * 0.24f;
                 OrbitComet orbitComet = comet.GetComponent<OrbitComet>();
                 if (orbitComet != null)
@@ -466,6 +487,14 @@ namespace MichaelManorEditor
 
             xrRig.transform.position = new Vector3(0f, 0f, -12.5f);
             xrRig.transform.rotation = Quaternion.identity;
+
+            Camera xrCamera = xrRig.GetComponentInChildren<Camera>(true);
+            if (xrCamera != null)
+            {
+                // Matches a typical headset's broader view in desktop Play Mode.
+                // Active XR runtimes replace this projection with the device FOV.
+                xrCamera.fieldOfView = 88f;
+            }
         }
 
         private static void ConfigureXrEventSystem(Scene scene)
@@ -691,6 +720,107 @@ namespace MichaelManorEditor
 
             EditorUtility.SetDirty(material);
             return material;
+        }
+
+        private static Material EnsureTexturedMaterial(
+            string name,
+            Color tint,
+            float metallic,
+            float smoothness,
+            Vector2 tiling,
+            string baseMapPath,
+            string normalMapPath,
+            string occlusionMapPath)
+        {
+            Material material = EnsureMaterial(name, tint, metallic, smoothness);
+            Texture2D baseMap = AssetDatabase.LoadAssetAtPath<Texture2D>(baseMapPath);
+            Texture2D normalMap = AssetDatabase.LoadAssetAtPath<Texture2D>(normalMapPath);
+            Texture2D occlusionMap = AssetDatabase.LoadAssetAtPath<Texture2D>(occlusionMapPath);
+
+            material.SetTexture("_BaseMap", baseMap);
+            material.SetTextureScale("_BaseMap", tiling);
+            material.SetTexture("_BumpMap", normalMap);
+            material.SetTextureScale("_BumpMap", tiling);
+            material.SetFloat("_BumpScale", 0.72f);
+            material.SetTexture("_OcclusionMap", occlusionMap);
+            material.SetTextureScale("_OcclusionMap", tiling);
+            material.SetFloat("_OcclusionStrength", 0.82f);
+            material.EnableKeyword("_NORMALMAP");
+            material.EnableKeyword("_OCCLUSIONMAP");
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static void ConfigurePbrTextureImports()
+        {
+            ConfigureTextureImport($"{WornPlasterFolder}/worn_plaster_wall_diff_2k.jpg", TextureImporterType.Default, true, 4);
+            ConfigureTextureImport($"{WornPlasterFolder}/worn_plaster_wall_nor_gl_2k.jpg", TextureImporterType.NormalMap, false, 4);
+            ConfigureTextureImport($"{WornPlasterFolder}/worn_plaster_wall_ao_2k.jpg", TextureImporterType.Default, false, 2);
+            ConfigureTextureImport($"{WornWoodFloorFolder}/wood_floor_worn_diff_2k.jpg", TextureImporterType.Default, true, 8);
+            ConfigureTextureImport($"{WornWoodFloorFolder}/wood_floor_worn_nor_gl_2k.jpg", TextureImporterType.NormalMap, false, 8);
+            ConfigureTextureImport($"{WornWoodFloorFolder}/wood_floor_worn_ao_2k.jpg", TextureImporterType.Default, false, 4);
+        }
+
+        private static void ConfigureTextureImport(
+            string path,
+            TextureImporterType type,
+            bool sRgb,
+            int anisoLevel)
+        {
+            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null)
+            {
+                Debug.LogWarning($"Texture importer was not found for {path}");
+                return;
+            }
+
+            bool changed = false;
+            if (importer.textureType != type)
+            {
+                importer.textureType = type;
+                changed = true;
+            }
+
+            if (importer.sRGBTexture != sRgb)
+            {
+                importer.sRGBTexture = sRgb;
+                changed = true;
+            }
+
+            if (importer.maxTextureSize != 2048)
+            {
+                importer.maxTextureSize = 2048;
+                changed = true;
+            }
+
+            if (!importer.mipmapEnabled)
+            {
+                importer.mipmapEnabled = true;
+                changed = true;
+            }
+
+            if (importer.wrapMode != TextureWrapMode.Repeat)
+            {
+                importer.wrapMode = TextureWrapMode.Repeat;
+                changed = true;
+            }
+
+            if (importer.anisoLevel != anisoLevel)
+            {
+                importer.anisoLevel = anisoLevel;
+                changed = true;
+            }
+
+            if (importer.textureCompression != TextureImporterCompression.Compressed)
+            {
+                importer.textureCompression = TextureImporterCompression.Compressed;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                importer.SaveAndReimport();
+            }
         }
 
         private static void DeleteRoots(Scene scene, IEnumerable<string> names)
