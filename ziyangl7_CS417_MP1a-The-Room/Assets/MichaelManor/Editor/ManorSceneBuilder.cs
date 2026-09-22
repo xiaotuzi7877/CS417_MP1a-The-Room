@@ -729,7 +729,11 @@ namespace MichaelManorEditor
             instance.name = name;
             instance.transform.SetParent(parent, false);
             instance.transform.localPosition = position;
-            instance.transform.localRotation = rotation;
+            // Poly Haven's raw FBX meshes are Z-up. The imported prefab root
+            // correction is lost when we set a custom yaw, so apply it here
+            // explicitly before the room-facing rotation.
+            Quaternion zUpToYUp = Quaternion.Euler(-90f, 0f, 0f);
+            instance.transform.localRotation = rotation * zUpToYUp;
             instance.transform.localScale = Vector3.one;
             AssignMaterial(instance, material);
 
