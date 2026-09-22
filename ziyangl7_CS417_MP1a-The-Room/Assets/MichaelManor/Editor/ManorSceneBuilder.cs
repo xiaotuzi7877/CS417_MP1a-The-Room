@@ -134,6 +134,36 @@ namespace MichaelManorEditor
                 0.15f,
                 0.45f,
                 new Color(0.15f, 1.4f, 3.5f));
+            Material orbitGlow = EnsureMaterial(
+                "CelestialOrbitGlow",
+                new Color(0.42f, 0.30f, 0.10f),
+                0.55f,
+                0.62f,
+                new Color(1.8f, 0.72f, 0.12f));
+            Material celestialSun = EnsureMaterial(
+                "CelestialSun",
+                new Color(0.88f, 0.25f, 0.025f),
+                0.05f,
+                0.50f,
+                new Color(5.2f, 1.25f, 0.12f));
+            Material celestialPlanet = EnsureMaterial(
+                "CelestialPlanet",
+                new Color(0.025f, 0.20f, 0.58f),
+                0.18f,
+                0.58f,
+                new Color(0.08f, 0.62f, 2.2f));
+            Material celestialMoon = EnsureMaterial(
+                "CelestialMoon",
+                new Color(0.58f, 0.64f, 0.72f),
+                0.42f,
+                0.66f,
+                new Color(0.58f, 0.72f, 1.15f));
+            Material celestialComet = EnsureMaterial(
+                "CelestialComet",
+                new Color(0.46f, 0.018f, 0.09f),
+                0.12f,
+                0.48f,
+                new Color(2.8f, 0.08f, 0.22f));
 
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
@@ -153,7 +183,14 @@ namespace MichaelManorEditor
             BuildArchitecture(architecture, plaster, damagedPlaster, stone, floorWood, darkWood, woodHighlight, blackIron);
             BuildDecor(decor, velvet, darkWood, gold, portraitRed, portraitBlue, stone);
             BuildLighting(lighting, blackIron, gold, candleGlow);
-            BuildOrrery(scene, gold, blackIron, spectralGlow);
+            BuildOrrery(
+                gold,
+                blackIron,
+                orbitGlow,
+                celestialSun,
+                celestialPlanet,
+                celestialMoon,
+                celestialComet);
             BuildPuzzle(puzzle, integration, stone, darkWood, gold, silver, spectralGlow, candleGlow);
             PositionXrRig(scene);
             ConfigureXrEventSystem(scene);
@@ -306,57 +343,75 @@ namespace MichaelManorEditor
             }
         }
 
-        private static void BuildOrrery(Scene scene, Material gold, Material blackIron, Material spectralGlow)
+        private static void BuildOrrery(
+            Material gold,
+            Material blackIron,
+            Material orbitGlow,
+            Material celestialSun,
+            Material celestialPlanet,
+            Material celestialMoon,
+            Material celestialComet)
         {
             Transform orrery = NewRoot("Celestial_Orrery");
             orrery.position = new Vector3(0f, 9.35f, 0f);
 
             CreatePrimitive("SuspensionRod", PrimitiveType.Cylinder, orrery, new Vector3(0f, 1.9f, 0f), new Vector3(0.09f, 1.8f, 0.09f), blackIron, false);
             CreatePrimitive("SuspensionHub", PrimitiveType.Sphere, orrery, new Vector3(0f, 0.35f, 0f), Vector3.one * 0.30f, gold, false);
-            CreateOrbitRing("OrbitRing_Horizontal", orrery, Quaternion.identity, 4.45f, gold);
-            CreateOrbitRing("OrbitRing_TiltA", orrery, Quaternion.Euler(62f, 0f, 18f), 3.8f, gold);
-            CreateOrbitRing("OrbitRing_TiltB", orrery, Quaternion.Euler(0f, 0f, 72f), 3.2f, blackIron);
 
-            GameObject sun = CreatePrimitive("Sun", PrimitiveType.Sphere, orrery, Vector3.zero, Vector3.one * 0.8f, spectralGlow, false);
+            Transform movingAssembly = new GameObject("MovingOrbitAssembly").transform;
+            movingAssembly.SetParent(orrery, false);
+
+            Transform cometOrbit = CreateOrbitTrack(
+                "CometOrbit",
+                "OrbitRing_Horizontal",
+                movingAssembly,
+                Quaternion.identity,
+                4.45f,
+                orbitGlow);
+            Transform moonOrbit = CreateOrbitTrack(
+                "MoonOrbit",
+                "OrbitRing_TiltA",
+                movingAssembly,
+                Quaternion.Euler(62f, 0f, 18f),
+                3.8f,
+                gold);
+            Transform planetOrbit = CreateOrbitTrack(
+                "PlanetOrbit",
+                "OrbitRing_TiltB",
+                movingAssembly,
+                Quaternion.Euler(0f, 0f, 72f),
+                3.2f,
+                orbitGlow);
+
+            GameObject sun = CreatePrimitive("Sun", PrimitiveType.Sphere, orrery, Vector3.zero, Vector3.one * 0.9f, celestialSun, false);
             Light sunLight = sun.AddComponent<Light>();
             sunLight.type = LightType.Point;
-            sunLight.color = new Color(0.15f, 0.55f, 1f);
-            sunLight.intensity = 320f;
-            sunLight.range = 10f;
+            sunLight.color = new Color(1f, 0.36f, 0.08f);
+            sunLight.intensity = 235f;
+            sunLight.range = 8f;
 
-            GameObject planet = FindRoot(scene, "Planet");
-            if (planet != null)
-            {
-                planet.transform.SetParent(orrery, false);
-                planet.transform.localPosition = new Vector3(3.05f, 0f, 0f);
-                planet.transform.localScale = Vector3.one * 0.7f;
-                Renderer renderer = planet.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    renderer.sharedMaterial = spectralGlow;
-                }
+            GameObject planet = CreateOrbitingBody("Planet", planetOrbit, 3.2f, 12f, 0.72f, celestialPlanet);
+            GameObject moon = CreateOrbitingBody("Moon", moonOrbit, 3.8f, 158f, 0.48f, celestialMoon);
+            GameObject comet = CreateOrbitingBody("Comet", cometOrbit, 4.45f, 244f, 0.36f, celestialComet);
 
-                Transform moon = planet.transform.Find("Moon");
-                if (moon != null)
-                {
-                    moon.localPosition = new Vector3(1.15f, 0f, 0f);
-                    moon.localScale = Vector3.one * 0.35f;
-                }
-            }
+            TrailRenderer cometTrail = comet.AddComponent<TrailRenderer>();
+            cometTrail.time = 2.8f;
+            cometTrail.minVertexDistance = 0.04f;
+            cometTrail.startWidth = 0.28f;
+            cometTrail.endWidth = 0.015f;
+            cometTrail.sharedMaterial = celestialComet;
+            cometTrail.startColor = new Color(1f, 0.16f, 0.28f, 0.92f);
+            cometTrail.endColor = new Color(0.22f, 0.01f, 0.04f, 0f);
 
-            GameObject comet = FindRoot(scene, "Comet");
-            if (comet != null)
-            {
-                comet.transform.SetParent(orrery, false);
-                comet.transform.localPosition = new Vector3(4.45f, 0.1f, 0f);
-                comet.transform.localScale = Vector3.one * 0.24f;
-                OrbitComet orbitComet = comet.GetComponent<OrbitComet>();
-                if (orbitComet != null)
-                {
-                    orbitComet.planet = sun.transform;
-                    orbitComet.gravity = 0.32f;
-                }
-            }
+            ManorOrreryController controller = orrery.gameObject.AddComponent<ManorOrreryController>();
+            controller.Configure(
+                movingAssembly,
+                planetOrbit,
+                moonOrbit,
+                cometOrbit,
+                planet.transform,
+                moon.transform,
+                comet.transform);
         }
 
         private static void BuildPuzzle(
@@ -646,14 +701,44 @@ namespace MichaelManorEditor
             ring.useWorldSpace = false;
             ring.loop = true;
             ring.positionCount = 64;
-            ring.startWidth = 0.045f;
-            ring.endWidth = 0.045f;
+            ring.startWidth = 0.065f;
+            ring.endWidth = 0.065f;
+            ring.numCornerVertices = 3;
+            ring.numCapVertices = 3;
             ring.sharedMaterial = material;
             for (int i = 0; i < ring.positionCount; i++)
             {
                 float angle = i * Mathf.PI * 2f / ring.positionCount;
                 ring.SetPosition(i, new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius));
             }
+        }
+
+        private static Transform CreateOrbitTrack(
+            string trackName,
+            string ringName,
+            Transform parent,
+            Quaternion rotation,
+            float radius,
+            Material material)
+        {
+            Transform track = new GameObject(trackName).transform;
+            track.SetParent(parent, false);
+            track.localRotation = rotation;
+            CreateOrbitRing(ringName, track, Quaternion.identity, radius, material);
+            return track;
+        }
+
+        private static GameObject CreateOrbitingBody(
+            string name,
+            Transform orbit,
+            float radius,
+            float startingAngle,
+            float diameter,
+            Material material)
+        {
+            float radians = startingAngle * Mathf.Deg2Rad;
+            Vector3 position = new Vector3(Mathf.Cos(radians) * radius, 0f, Mathf.Sin(radians) * radius);
+            return CreatePrimitive(name, PrimitiveType.Sphere, orbit, position, Vector3.one * diameter, material, false);
         }
 
         private static GameObject CreatePrimitive(
