@@ -19,14 +19,14 @@ Use `Assets/Scenes/MichaelManorHall.unity`. It is build index 0.
 | Enclosed themed 3D room | `Architecture`, `Furniture`, `Decor`, `Lighting`, `ExitDoor` |
 | World Space Canvas | `Systems/Rubric_Presentation/ControlsCanvas_WorldSpace` |
 | Point light | `Systems/Rubric_Presentation/CeilingPointLight_Rubric` |
-| Custom outline shader | Silver Fang renderer plus `Assets/Shaders/Outline.shader` |
+| Custom outline shader | Silver Fang renderer plus `Assets/Shaders/OutlineShader.shader` |
 | Rainbow/color-changing light | `LightSwitch`; left primary controller button or `L` |
 | Quit input | `QuitGame`; right primary controller button or `Q` |
 | Camera breakout and return | `BreakOut`; right secondary controller button or `B` |
 | Object shooter/spawner | `ObjectSpawner`; right trigger or `P` |
 | Projectile trail | Spawned `SpawnBall` and its `TrailRenderer` |
-| Kinematic double integration | `KinematicIntegrate` on the spawned ball |
-| Arbitrary attractor | `AttractedTo` targets the orrery Sun |
+| Kinematic double integration | `ProjectileMotion` integrates acceleration to velocity, then velocity to position |
+| Arbitrary attractor | `ObjectSpawner` passes the selected orrery Sun transform into `ProjectileMotion.InitializeOrbit` |
 | Perfect orbital velocity | `ObjectSpawner` calculates `sqrt(gravity / distance)` tangential speed |
 | Particle feedback | 18 scene particle systems; four four-emitter feedback banks plus local effects |
 | Spatial sound | 16 distributed 3D `AudioSource` components plus local spawn audio |
