@@ -50,7 +50,14 @@ namespace MichaelManorEditor
             "Manor_Lighting",
             "Manor_Puzzle",
             "Manor_Integration",
-            "Celestial_Orrery"
+            "Celestial_Orrery",
+            "Architecture",
+            "Furniture",
+            "Decor",
+            "Lighting",
+            "Puzzle",
+            "Systems",
+            "ExitDoor"
         };
 
         [InitializeOnLoadMethod]
@@ -88,6 +95,7 @@ namespace MichaelManorEditor
             ConfigurePbrTextureImports();
             Scene scene = EditorSceneManager.OpenScene(TargetScenePath, OpenSceneMode.Single);
 
+            PreserveSourceObjectsFromSystems(scene);
             DeleteRoots(scene, LegacyRootNames);
             DeleteRoots(scene, GeneratedRootNames);
 
@@ -206,14 +214,17 @@ namespace MichaelManorEditor
             RenderSettings.ambientEquatorColor = new Color(0.055f, 0.035f, 0.045f);
             RenderSettings.ambientGroundColor = new Color(0.018f, 0.014f, 0.014f);
 
-            Transform architecture = NewRoot("Manor_Architecture");
-            Transform decor = NewRoot("Manor_Decor");
-            Transform lighting = NewRoot("Manor_Lighting");
-            Transform puzzle = NewRoot("Manor_Puzzle");
-            Transform integration = NewRoot("Manor_Integration");
+            Transform architecture = NewRoot("Architecture");
+            Transform furniture = NewRoot("Furniture");
+            Transform decor = NewRoot("Decor");
+            Transform lighting = NewRoot("Lighting");
+            Transform puzzle = NewRoot("Puzzle");
+            Transform systems = NewRoot("Systems");
+            Transform exitDoor = NewRoot("ExitDoor");
+            Transform winFlow = NewGroup("WinFlow", systems);
 
-            BuildArchitecture(architecture, plaster, damagedPlaster, stone, floorWood, darkWood, woodHighlight, blackIron);
-            BuildDecor(decor, gold, portraitRed, portraitBlue, gothicTable, woodenChair, woodenSofa, woodenCabinet);
+            BuildArchitecture(architecture, exitDoor, plaster, damagedPlaster, stone, floorWood, darkWood, woodHighlight, blackIron);
+            BuildDecor(decor, furniture, gold, portraitRed, portraitBlue, gothicTable, woodenChair, woodenSofa, woodenCabinet);
             BuildLighting(lighting, blackIron, gold, candleGlow);
             BuildOrrery(
                 gold,
@@ -223,9 +234,11 @@ namespace MichaelManorEditor
                 celestialPlanet,
                 celestialMoon,
                 celestialComet);
-            BuildPuzzle(puzzle, integration, stone, darkWood, gold, silver, spectralGlow, candleGlow);
+            BuildPuzzle(puzzle, winFlow, stone, darkWood, gold, silver, spectralGlow, candleGlow);
             PositionXrRig(scene);
             ConfigureXrEventSystem(scene);
+            MoveSourceObjectUnder(scene, "Global Volume", systems);
+            MoveSourceObjectUnder(scene, "EventSystem", systems);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -255,6 +268,7 @@ namespace MichaelManorEditor
 
         private static void BuildArchitecture(
             Transform parent,
+            Transform door,
             Material plaster,
             Material damagedPlaster,
             Material stone,
@@ -263,25 +277,30 @@ namespace MichaelManorEditor
             Material woodHighlight,
             Material blackIron)
         {
-            CreatePrimitive("Floor_Base", PrimitiveType.Cube, parent, new Vector3(0f, -0.3f, 0f), new Vector3(18f, 0.6f, 32f), stone);
-            CreatePrimitive("Floor_Wood", PrimitiveType.Cube, parent, new Vector3(0f, 0.03f, 0f), new Vector3(17.2f, 0.08f, 31.2f), floorWood, false);
-            CreatePrimitive("FloorBorder_Left", PrimitiveType.Cube, parent, new Vector3(-8.45f, 0.10f, 0f), new Vector3(0.22f, 0.12f, 31.1f), darkWood, false);
-            CreatePrimitive("FloorBorder_Right", PrimitiveType.Cube, parent, new Vector3(8.45f, 0.10f, 0f), new Vector3(0.22f, 0.12f, 31.1f), darkWood, false);
+            Transform floors = NewGroup("Floors", parent);
+            Transform walls = NewGroup("Walls", parent);
+            Transform ceiling = NewGroup("Ceiling", parent);
+            Transform wallDetails = NewGroup("Wall_Details", parent);
 
-            CreatePrimitive("Wall_Left", PrimitiveType.Cube, parent, new Vector3(-9f, 6.6f, 0f), new Vector3(0.45f, 13.2f, 32f), plaster);
-            CreatePrimitive("Wall_Right", PrimitiveType.Cube, parent, new Vector3(9f, 6.6f, 0f), new Vector3(0.45f, 13.2f, 32f), plaster);
-            CreatePrimitive("Wall_Entry", PrimitiveType.Cube, parent, new Vector3(0f, 6.6f, -16f), new Vector3(18f, 13.2f, 0.45f), damagedPlaster);
+            CreatePrimitive("Floor_Base", PrimitiveType.Cube, floors, new Vector3(0f, -0.3f, 0f), new Vector3(18f, 0.6f, 32f), stone);
+            CreatePrimitive("Floor_Wood", PrimitiveType.Cube, floors, new Vector3(0f, 0.03f, 0f), new Vector3(17.2f, 0.08f, 31.2f), floorWood, false);
+            CreatePrimitive("FloorBorder_Left", PrimitiveType.Cube, floors, new Vector3(-8.45f, 0.10f, 0f), new Vector3(0.22f, 0.12f, 31.1f), darkWood, false);
+            CreatePrimitive("FloorBorder_Right", PrimitiveType.Cube, floors, new Vector3(8.45f, 0.10f, 0f), new Vector3(0.22f, 0.12f, 31.1f), darkWood, false);
 
-            CreatePrimitive("Wall_Exit_Left", PrimitiveType.Cube, parent, new Vector3(-5.6f, 6.6f, 16f), new Vector3(6.8f, 13.2f, 0.45f), damagedPlaster);
-            CreatePrimitive("Wall_Exit_Right", PrimitiveType.Cube, parent, new Vector3(5.6f, 6.6f, 16f), new Vector3(6.8f, 13.2f, 0.45f), damagedPlaster);
-            CreatePrimitive("Wall_Exit_Arch", PrimitiveType.Cube, parent, new Vector3(0f, 10.1f, 16f), new Vector3(4.4f, 6.2f, 0.45f), stone);
+            CreatePrimitive("Wall_Left", PrimitiveType.Cube, walls, new Vector3(-9f, 6.6f, 0f), new Vector3(0.45f, 13.2f, 32f), plaster);
+            CreatePrimitive("Wall_Right", PrimitiveType.Cube, walls, new Vector3(9f, 6.6f, 0f), new Vector3(0.45f, 13.2f, 32f), plaster);
+            CreatePrimitive("Wall_Entry", PrimitiveType.Cube, walls, new Vector3(0f, 6.6f, -16f), new Vector3(18f, 13.2f, 0.45f), damagedPlaster);
 
-            CreatePrimitive("Ceiling", PrimitiveType.Cube, parent, new Vector3(0f, 13.35f, 0f), new Vector3(18.4f, 0.4f, 32.4f), damagedPlaster);
+            CreatePrimitive("Wall_Exit_Left", PrimitiveType.Cube, walls, new Vector3(-5.6f, 6.6f, 16f), new Vector3(6.8f, 13.2f, 0.45f), damagedPlaster);
+            CreatePrimitive("Wall_Exit_Right", PrimitiveType.Cube, walls, new Vector3(5.6f, 6.6f, 16f), new Vector3(6.8f, 13.2f, 0.45f), damagedPlaster);
+            CreatePrimitive("Wall_Exit_Arch", PrimitiveType.Cube, walls, new Vector3(0f, 10.1f, 16f), new Vector3(4.4f, 6.2f, 0.45f), stone);
+
+            CreatePrimitive("Ceiling_Surface", PrimitiveType.Cube, ceiling, new Vector3(0f, 13.35f, 0f), new Vector3(18.4f, 0.4f, 32.4f), damagedPlaster);
 
             float[] beamPositions = { -13f, -8.7f, -4.35f, 4.35f, 8.7f, 13f };
             for (int i = 0; i < beamPositions.Length; i++)
             {
-                CreatePrimitive($"Ceiling_Beam_{i:00}", PrimitiveType.Cube, parent, new Vector3(0f, 12.92f, beamPositions[i]), new Vector3(18.1f, 0.42f, 0.48f), darkWood, false);
+                CreatePrimitive($"Ceiling_Beam_{i:00}", PrimitiveType.Cube, ceiling, new Vector3(0f, 12.92f, beamPositions[i]), new Vector3(18.1f, 0.42f, 0.48f), darkWood, false);
             }
 
             for (int side = -1; side <= 1; side += 2)
@@ -290,19 +309,17 @@ namespace MichaelManorEditor
                 for (int i = -2; i <= 2; i++)
                 {
                     float z = i * 6.2f;
-                    CreatePrimitive($"Pilaster_{side}_{i}", PrimitiveType.Cylinder, parent, new Vector3(x, 5.9f, z), new Vector3(0.48f, 5.9f, 0.48f), stone);
-                    CreatePrimitive($"PilasterBase_{side}_{i}", PrimitiveType.Cube, parent, new Vector3(x, 0.4f, z), new Vector3(1.2f, 0.8f, 1.2f), stone);
-                    CreatePrimitive($"PilasterCap_{side}_{i}", PrimitiveType.Cube, parent, new Vector3(x, 11.55f, z), new Vector3(1.3f, 0.55f, 1.3f), stone, false);
+                    CreatePrimitive($"Pilaster_{side}_{i}", PrimitiveType.Cylinder, wallDetails, new Vector3(x, 5.9f, z), new Vector3(0.48f, 5.9f, 0.48f), stone);
+                    CreatePrimitive($"PilasterBase_{side}_{i}", PrimitiveType.Cube, wallDetails, new Vector3(x, 0.4f, z), new Vector3(1.2f, 0.8f, 1.2f), stone);
+                    CreatePrimitive($"PilasterCap_{side}_{i}", PrimitiveType.Cube, wallDetails, new Vector3(x, 11.55f, z), new Vector3(1.3f, 0.55f, 1.3f), stone, false);
                 }
 
-                CreatePrimitive($"Wainscot_{side}", PrimitiveType.Cube, parent, new Vector3(x, 1.65f, 0f), new Vector3(0.18f, 2.8f, 30.8f), darkWood, false);
-                CreatePrimitive($"ChairRail_{side}", PrimitiveType.Cube, parent, new Vector3(x - side * 0.05f, 3.1f, 0f), new Vector3(0.22f, 0.18f, 31f), woodHighlight, false);
-                CreatePrimitive($"UpperCornice_{side}", PrimitiveType.Cube, parent, new Vector3(x - side * 0.05f, 11.95f, 0f), new Vector3(0.28f, 0.28f, 31f), woodHighlight, false);
+                CreatePrimitive($"Wainscot_{side}", PrimitiveType.Cube, wallDetails, new Vector3(x, 1.65f, 0f), new Vector3(0.18f, 2.8f, 30.8f), darkWood, false);
+                CreatePrimitive($"ChairRail_{side}", PrimitiveType.Cube, wallDetails, new Vector3(x - side * 0.05f, 3.1f, 0f), new Vector3(0.22f, 0.18f, 31f), woodHighlight, false);
+                CreatePrimitive($"UpperCornice_{side}", PrimitiveType.Cube, wallDetails, new Vector3(x - side * 0.05f, 11.95f, 0f), new Vector3(0.28f, 0.28f, 31f), woodHighlight, false);
             }
 
-            Transform door = new GameObject("ExitDoor_Root").transform;
-            door.SetParent(parent, false);
-            CreatePrimitive("ExitDoor", PrimitiveType.Cube, door, new Vector3(0f, 2.75f, 15.78f), new Vector3(4.35f, 5.5f, 0.42f), darkWood);
+            CreatePrimitive("DoorPanel", PrimitiveType.Cube, door, new Vector3(0f, 2.75f, 15.78f), new Vector3(4.35f, 5.5f, 0.42f), darkWood);
             for (int i = -1; i <= 1; i++)
             {
                 CreatePrimitive($"DoorIron_{i}", PrimitiveType.Cube, door, new Vector3(i * 1.25f, 2.75f, 15.52f), new Vector3(0.14f, 5.1f, 0.12f), blackIron, false);
@@ -312,7 +329,8 @@ namespace MichaelManorEditor
         }
 
         private static void BuildDecor(
-            Transform parent,
+            Transform decorParent,
+            Transform furnitureParent,
             Material gold,
             Material portraitRed,
             Material portraitBlue,
@@ -321,12 +339,14 @@ namespace MichaelManorEditor
             Material woodenSofa,
             Material woodenCabinet)
         {
+            Transform portraits = NewGroup("Portraits", decorParent);
+            Transform floorDecor = NewGroup("Floor_Decor", decorParent);
             float[] paintingZ = { -10f, -3.2f, 4.2f, 11f };
             for (int i = 0; i < paintingZ.Length; i++)
             {
                 CreatePainting(
                     $"Portrait_Left_{i}",
-                    parent,
+                    portraits,
                     new Vector3(-8.72f, 5.8f, paintingZ[i]),
                     Quaternion.Euler(0f, 90f, 0f),
                     i % 2 == 0 ? portraitRed : portraitBlue,
@@ -334,7 +354,7 @@ namespace MichaelManorEditor
 
                 CreatePainting(
                     $"Portrait_Right_{i}",
-                    parent,
+                    portraits,
                     new Vector3(8.72f, 5.8f, paintingZ[i] + 1.4f),
                     Quaternion.Euler(0f, -90f, 0f),
                     i % 2 == 0 ? portraitBlue : portraitRed,
@@ -349,7 +369,7 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "PaintedWoodenSofa_Left",
                 sofaPath,
-                parent,
+                furnitureParent,
                 new Vector3(-7.10f, 0.12f, -3.0f),
                 Quaternion.Euler(0f, 90f, 0f),
                 1.35f,
@@ -357,7 +377,7 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "PaintedWoodenSofa_Right",
                 sofaPath,
-                parent,
+                furnitureParent,
                 new Vector3(7.10f, 0.12f, 3.0f),
                 Quaternion.Euler(0f, -90f, 0f),
                 1.35f,
@@ -366,7 +386,7 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "GothicCoffeeTable_Left",
                 tablePath,
-                parent,
+                furnitureParent,
                 new Vector3(-5.20f, 0.12f, -3.0f),
                 Quaternion.Euler(0f, 90f, 0f),
                 0.78f,
@@ -374,7 +394,7 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "GothicCoffeeTable_Right",
                 tablePath,
-                parent,
+                furnitureParent,
                 new Vector3(5.20f, 0.12f, 3.0f),
                 Quaternion.Euler(0f, -90f, 0f),
                 0.78f,
@@ -383,7 +403,7 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "GothicChair_LeftFacing",
                 chairPath,
-                parent,
+                furnitureParent,
                 new Vector3(-3.55f, 0.12f, -3.0f),
                 Quaternion.Euler(0f, -90f, 0f),
                 1.75f,
@@ -391,7 +411,7 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "GothicChair_LeftCorner",
                 chairPath,
-                parent,
+                furnitureParent,
                 new Vector3(-5.15f, 0.12f, -4.75f),
                 Quaternion.Euler(0f, 0f, 0f),
                 1.75f,
@@ -399,7 +419,7 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "GothicChair_RightFacing",
                 chairPath,
-                parent,
+                furnitureParent,
                 new Vector3(3.55f, 0.12f, 3.0f),
                 Quaternion.Euler(0f, 90f, 0f),
                 1.75f,
@@ -407,7 +427,7 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "GothicChair_RightCorner",
                 chairPath,
-                parent,
+                furnitureParent,
                 new Vector3(5.15f, 0.12f, 4.75f),
                 Quaternion.Euler(0f, 180f, 0f),
                 1.75f,
@@ -416,7 +436,7 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "PaintedWoodenCabinet_Left",
                 cabinetPath,
-                parent,
+                furnitureParent,
                 new Vector3(-8.20f, 0.12f, 8.7f),
                 Quaternion.Euler(0f, 90f, 0f),
                 2.65f,
@@ -424,19 +444,22 @@ namespace MichaelManorEditor
             PlaceFurnitureModel(
                 "PaintedWoodenCabinet_Right",
                 cabinetPath,
-                parent,
+                furnitureParent,
                 new Vector3(8.20f, 0.12f, -8.7f),
                 Quaternion.Euler(0f, -90f, 0f),
                 2.65f,
                 woodenCabinet);
 
-            CreatePrimitive("Runner", PrimitiveType.Cube, parent, new Vector3(0f, 0.11f, 1.5f), new Vector3(3.4f, 0.025f, 23f), portraitRed, false);
+            CreatePrimitive("Runner", PrimitiveType.Cube, floorDecor, new Vector3(0f, 0.11f, 1.5f), new Vector3(3.4f, 0.025f, 23f), portraitRed, false);
         }
 
         private static void BuildLighting(Transform parent, Material blackIron, Material gold, Material candleGlow)
         {
+            Transform ambient = NewGroup("Ambient", parent);
+            Transform chandeliers = NewGroup("Chandeliers", parent);
+            Transform wallSconces = NewGroup("Wall_Sconces", parent);
             GameObject moonlightObject = new GameObject("Moonlight");
-            moonlightObject.transform.SetParent(parent, false);
+            moonlightObject.transform.SetParent(ambient, false);
             moonlightObject.transform.rotation = Quaternion.Euler(48f, -28f, 0f);
             Light moonlight = moonlightObject.AddComponent<Light>();
             moonlight.type = LightType.Directional;
@@ -444,14 +467,14 @@ namespace MichaelManorEditor
             moonlight.intensity = 0.34f;
             moonlight.shadows = LightShadows.Soft;
 
-            CreateChandelier("Chandelier_North", parent, new Vector3(0f, 11.45f, 8.7f), blackIron, gold, candleGlow);
-            CreateChandelier("Chandelier_South", parent, new Vector3(0f, 11.45f, -8.7f), blackIron, gold, candleGlow);
+            CreateChandelier("Chandelier_North", chandeliers, new Vector3(0f, 11.45f, 8.7f), blackIron, gold, candleGlow);
+            CreateChandelier("Chandelier_South", chandeliers, new Vector3(0f, 11.45f, -8.7f), blackIron, gold, candleGlow);
 
             float[] zPositions = { -11f, -3.5f, 4f, 11f };
             foreach (float z in zPositions)
             {
-                CreateSconce(parent, new Vector3(-8.35f, 4.1f, z), candleGlow, gold);
-                CreateSconce(parent, new Vector3(8.35f, 4.1f, z), candleGlow, gold);
+                CreateSconce(wallSconces, new Vector3(-8.35f, 4.1f, z), candleGlow, gold);
+                CreateSconce(wallSconces, new Vector3(8.35f, 4.1f, z), candleGlow, gold);
             }
         }
 
@@ -536,8 +559,9 @@ namespace MichaelManorEditor
             Material spectralGlow,
             Material candleGlow)
         {
+            Transform silverFangQuest = NewGroup("SilverFangQuest", puzzleParent);
             Transform pedestal = new GameObject("SilverFang_Pedestal").transform;
-            pedestal.SetParent(puzzleParent, false);
+            pedestal.SetParent(silverFangQuest, false);
             pedestal.localPosition = new Vector3(0f, 0f, 10.6f);
             CreatePrimitive("PedestalBase", PrimitiveType.Cylinder, pedestal, new Vector3(0f, 0.3f, 0f), new Vector3(1.1f, 0.3f, 1.1f), stone);
             CreatePrimitive("PedestalStem", PrimitiveType.Cylinder, pedestal, new Vector3(0f, 1.05f, 0f), new Vector3(0.48f, 0.78f, 0.48f), stone);
@@ -586,7 +610,7 @@ namespace MichaelManorEditor
             GameObject fang = CreatePrimitive(
                 "SilverFang",
                 PrimitiveType.Capsule,
-                puzzleParent,
+                silverFangQuest,
                 new Vector3(-5.2f, 1.35f, -10.5f),
                 new Vector3(0.24f, 0.68f, 0.24f),
                 silver);
@@ -600,13 +624,13 @@ namespace MichaelManorEditor
             artifact.Configure("SilverFang");
 
             Transform display = new GameObject("FangDisplayTable").transform;
-            display.SetParent(puzzleParent, false);
+            display.SetParent(silverFangQuest, false);
             display.localPosition = new Vector3(-5.2f, 0f, -10.5f);
             CreatePrimitive("DisplayTop", PrimitiveType.Cylinder, display, new Vector3(0f, 1.0f, 0f), new Vector3(0.72f, 0.12f, 0.72f), darkWood);
             CreatePrimitive("DisplayStem", PrimitiveType.Cylinder, display, new Vector3(0f, 0.52f, 0f), new Vector3(0.16f, 0.5f, 0.16f), gold);
             CreatePrimitive("DisplayBase", PrimitiveType.Cylinder, display, new Vector3(0f, 0.12f, 0f), new Vector3(0.48f, 0.12f, 0.48f), stone);
 
-            GameObject doorObject = GameObject.Find("ExitDoor_Root");
+            GameObject doorObject = GameObject.Find("ExitDoor");
             ManorPuzzleSocket puzzleSocket = socketObject.AddComponent<ManorPuzzleSocket>();
             puzzleSocket.Configure(socket, "SilverFang", doorObject != null ? doorObject.transform : null, successFeedback.gameObject, statusLight);
 
@@ -729,9 +753,8 @@ namespace MichaelManorEditor
             instance.name = name;
             instance.transform.SetParent(parent, false);
             instance.transform.localPosition = position;
-            // Poly Haven's raw FBX meshes are Z-up. The imported prefab root
-            // correction is lost when we set a custom yaw, so apply it here
-            // explicitly before the room-facing rotation.
+            // Poly Haven's raw FBX meshes are Z-up. Apply the base correction
+            // before the room-facing yaw so every rebuild keeps them upright.
             Quaternion zUpToYUp = Quaternion.Euler(-90f, 0f, 0f);
             instance.transform.localRotation = rotation * zUpToYUp;
             instance.transform.localScale = Vector3.one;
@@ -1190,9 +1213,43 @@ namespace MichaelManorEditor
             }
         }
 
+        private static void PreserveSourceObjectsFromSystems(Scene scene)
+        {
+            GameObject systems = FindRoot(scene, "Systems");
+            if (systems == null)
+            {
+                return;
+            }
+
+            foreach (string objectName in new[] { "Global Volume", "EventSystem" })
+            {
+                Transform child = systems.transform.Find(objectName);
+                if (child != null)
+                {
+                    child.SetParent(null, true);
+                }
+            }
+        }
+
+        private static void MoveSourceObjectUnder(Scene scene, string objectName, Transform parent)
+        {
+            GameObject sourceObject = FindRoot(scene, objectName);
+            if (sourceObject != null)
+            {
+                sourceObject.transform.SetParent(parent, true);
+            }
+        }
+
         private static Transform NewRoot(string name)
         {
             return new GameObject(name).transform;
+        }
+
+        private static Transform NewGroup(string name, Transform parent)
+        {
+            Transform group = new GameObject(name).transform;
+            group.SetParent(parent, false);
+            return group;
         }
 
         private static GameObject FindRoot(Scene scene, string name)
