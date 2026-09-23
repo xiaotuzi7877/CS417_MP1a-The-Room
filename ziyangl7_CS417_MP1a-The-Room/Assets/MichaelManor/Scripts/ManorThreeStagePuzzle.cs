@@ -323,7 +323,10 @@ namespace MichaelManor
 
             if (progressText != null)
             {
-                progressText.text = "RITUAL PROGRESS  3 / 3\nESCAPE UNLOCKED\nRITUAL CLUES FOUND  3 / 3";
+                progressText.text = "RITUAL PROGRESS  3 / 3\n" +
+                                    "KEYS HIDDEN  0\n" +
+                                    "LOCKS REMAINING  0\n" +
+                                    "RITUAL CLUES IN HALL  3";
             }
 
             float elapsed = 0f;
@@ -581,8 +584,9 @@ namespace MichaelManor
             if (progressText != null)
             {
                 progressText.text = $"RITUAL PROGRESS  {currentStage} / {StageCount}\n" +
+                                    $"KEYS HIDDEN  {Mathf.Max(0, StageCount - currentStage - 1)}\n" +
                                     $"LOCKS REMAINING  {Mathf.Max(0, StageCount - currentStage)}\n" +
-                                    $"RITUAL CLUES FOUND  {currentStage} / {StageCount}";
+                                    $"RITUAL CLUES IN HALL  {StageCount}";
             }
 
             if (instructionText == null)

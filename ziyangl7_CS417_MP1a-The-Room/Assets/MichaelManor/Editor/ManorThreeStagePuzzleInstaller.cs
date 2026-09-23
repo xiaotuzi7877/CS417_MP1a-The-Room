@@ -138,14 +138,14 @@ namespace MichaelManorEditor
             board.position = new Vector3(5.45f, 2.50f, -10.72f);
             board.rotation = Quaternion.Euler(0f, 0f, 0f);
             CreatePart("BoardBacking", PrimitiveType.Cube, board, Vector3.zero,
-                new Vector3(2.05f, 0.92f, 0.08f), darkWood, false);
-            CreatePart("BoardFrameTop", PrimitiveType.Cube, board, new Vector3(0f, 0.53f, -0.02f),
+                new Vector3(2.05f, 1.18f, 0.08f), darkWood, false);
+            CreatePart("BoardFrameTop", PrimitiveType.Cube, board, new Vector3(0f, 0.66f, -0.02f),
                 new Vector3(2.25f, 0.07f, 0.12f), gold, false);
-            CreatePart("BoardFrameBottom", PrimitiveType.Cube, board, new Vector3(0f, -0.53f, -0.02f),
+            CreatePart("BoardFrameBottom", PrimitiveType.Cube, board, new Vector3(0f, -0.66f, -0.02f),
                 new Vector3(2.25f, 0.07f, 0.12f), gold, false);
-            TextMeshPro progress = CreateWorldText("ProgressText", board, new Vector3(0f, 0.18f, -0.08f),
-                new Vector2(3.8f, 0.75f), 3.6f, "RITUAL PROGRESS  0 / 3\nLOCKS REMAINING  3\nRITUAL CLUES FOUND  0 / 3", gold);
-            TextMeshPro instructions = CreateWorldText("CurrentClueText", board, new Vector3(0f, -0.32f, -0.08f),
+            TextMeshPro progress = CreateWorldText("ProgressText", board, new Vector3(0f, 0.16f, -0.08f),
+                new Vector2(3.8f, 1.02f), 3.2f, "RITUAL PROGRESS  0 / 3\nKEYS HIDDEN  2\nLOCKS REMAINING  3\nRITUAL CLUES IN HALL  3", gold);
+            TextMeshPro instructions = CreateWorldText("CurrentClueText", board, new Vector3(0f, -0.50f, -0.08f),
                 new Vector2(3.8f, 0.38f), 2.4f, "I - THE SILVER FANG SILENCES THE WATCHER", moon);
 
             CreatePlaque(cluesRoot, "Clue_01_Watcher", new Vector3(-7.98f, 2.65f, -9.3f),
