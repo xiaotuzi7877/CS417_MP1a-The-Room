@@ -250,6 +250,56 @@ namespace MichaelManorEditor
             Debug.Log("Michael Manor Hall rebuilt successfully. The original SampleScene was preserved.");
         }
 
+        [MenuItem("Tools/Michael Manor/Realign Portraits")]
+        public static void RealignPortraits()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                Debug.LogError("Open Michael Manor Hall before realigning its portraits.");
+                return;
+            }
+
+            float[] paintingZ = { -9.3f, -3.1f, 3.1f, 9.3f };
+            int portraitsUpdated = 0;
+
+            for (int i = 0; i < paintingZ.Length; i++)
+            {
+                portraitsUpdated += RealignPortrait(
+                    $"Portrait_Left_{i}",
+                    new Vector3(-8.72f, 5.8f, paintingZ[i]),
+                    Quaternion.Euler(0f, 90f, 0f));
+                portraitsUpdated += RealignPortrait(
+                    $"Portrait_Right_{i}",
+                    new Vector3(8.72f, 5.8f, paintingZ[i]),
+                    Quaternion.Euler(0f, -90f, 0f));
+            }
+
+            if (portraitsUpdated == 0)
+            {
+                Debug.LogError("No manor portraits were found in the open scene.");
+                return;
+            }
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log($"Realigned {portraitsUpdated} portraits between the wall columns.");
+        }
+
+        private static int RealignPortrait(string objectName, Vector3 position, Quaternion rotation)
+        {
+            GameObject portrait = GameObject.Find(objectName);
+            if (portrait == null)
+            {
+                Debug.LogWarning($"Could not find portrait: {objectName}");
+                return 0;
+            }
+
+            Undo.RecordObject(portrait.transform, "Realign Manor Portraits");
+            portrait.transform.SetPositionAndRotation(position, rotation);
+            return 1;
+        }
+
         [MenuItem("Tools/Michael Manor/Preview Puzzle Completion")]
         private static void PreviewPuzzleCompletion()
         {
@@ -341,7 +391,7 @@ namespace MichaelManorEditor
         {
             Transform portraits = NewGroup("Portraits", decorParent);
             Transform floorDecor = NewGroup("Floor_Decor", decorParent);
-            float[] paintingZ = { -10f, -3.2f, 4.2f, 11f };
+            float[] paintingZ = { -9.3f, -3.1f, 3.1f, 9.3f };
             for (int i = 0; i < paintingZ.Length; i++)
             {
                 CreatePainting(
@@ -355,7 +405,7 @@ namespace MichaelManorEditor
                 CreatePainting(
                     $"Portrait_Right_{i}",
                     portraits,
-                    new Vector3(8.72f, 5.8f, paintingZ[i] + 1.4f),
+                    new Vector3(8.72f, 5.8f, paintingZ[i]),
                     Quaternion.Euler(0f, -90f, 0f),
                     i % 2 == 0 ? portraitBlue : portraitRed,
                     gold);
