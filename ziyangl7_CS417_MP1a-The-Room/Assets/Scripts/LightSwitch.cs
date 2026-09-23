@@ -10,28 +10,36 @@ public class LightSwitch : MonoBehaviour
 
     private Light roomLight;
     private bool alternateColor = false;
+    private Color originalColor;
+    private float originalIntensity;
+    private InputAction activeAction;
+    private InputAction runtimeAction;
 
     private void Awake()
     {
         roomLight = GetComponent<Light>();
+        originalColor = roomLight.color;
+        originalIntensity = roomLight.intensity;
     }
 
     private void OnEnable()
     {
-        if (action != null)
-        {
-            action.action.Enable();
-            action.action.performed += OnLightSwitch;
-        }
+        activeAction = action != null ? action.action : CreateRuntimeAction();
+        activeAction.performed += OnLightSwitch;
+        activeAction.Enable();
     }
 
     private void OnDisable()
     {
-        if (action != null)
+        if (activeAction != null)
         {
-            action.action.performed -= OnLightSwitch;
-            action.action.Disable();
+            activeAction.performed -= OnLightSwitch;
+            activeAction.Disable();
         }
+
+        runtimeAction?.Dispose();
+        runtimeAction = null;
+        activeAction = null;
     }
 
     private void OnLightSwitch(InputAction.CallbackContext ctx)
@@ -40,13 +48,13 @@ public class LightSwitch : MonoBehaviour
 
         if (alternateColor)
         {
-            roomLight.color = Color.red;
-            roomLight.intensity = 5f;
+            roomLight.color = new Color(0.30f, 0.62f, 1f);
+            roomLight.intensity = originalIntensity * 1.35f;
         }
         else
         {
-            roomLight.color = Color.white;
-            roomLight.intensity = 2f;
+            roomLight.color = originalColor;
+            roomLight.intensity = originalIntensity;
         }
 
         if (lightBurstPrefab != null && burstPoint != null)
@@ -59,5 +67,13 @@ public class LightSwitch : MonoBehaviour
         }
 
         Debug.Log("LightSwitch triggered with particle feedback!");
+    }
+
+    private InputAction CreateRuntimeAction()
+    {
+        runtimeAction = new InputAction("Change Hall Light", InputActionType.Button);
+        runtimeAction.AddBinding("<XRController>{LeftHand}/primaryButton");
+        runtimeAction.AddBinding("<Keyboard>/l");
+        return runtimeAction;
     }
 }

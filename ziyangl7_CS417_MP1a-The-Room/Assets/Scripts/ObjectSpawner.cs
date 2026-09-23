@@ -14,25 +14,36 @@ public class ObjectSpawner : MonoBehaviour
     public Transform attractor;
     public float gravity = 0.2f;
 
+    private InputAction activeAction;
+    private InputAction runtimeAction;
+
     private void OnEnable()
     {
-        if (action != null)
-        {
-            action.action.Enable();
-            action.action.performed += OnSpawn;
-        }
+        activeAction = action != null ? action.action : CreateRuntimeAction();
+        activeAction.performed += OnSpawn;
+        activeAction.Enable();
     }
 
     private void OnDisable()
     {
-        if (action != null)
+        if (activeAction != null)
         {
-            action.action.performed -= OnSpawn;
-            action.action.Disable();
+            activeAction.performed -= OnSpawn;
+            activeAction.Disable();
         }
+
+        runtimeAction?.Dispose();
+        runtimeAction = null;
+        activeAction = null;
     }
 
     private void OnSpawn(InputAction.CallbackContext ctx)
+    {
+        SpawnOrbitingObject();
+    }
+
+    [ContextMenu("Spawn Orbiting Object")]
+    public void SpawnOrbitingObject()
     {
         if (objectPrefab == null ||
             spawnPoint == null ||
@@ -151,5 +162,13 @@ public class ObjectSpawner : MonoBehaviour
             "Distance = " + distance +
             ", Orbital Speed = " + orbitalSpeed
         );
+    }
+
+    private InputAction CreateRuntimeAction()
+    {
+        runtimeAction = new InputAction("Spawn Orbiting Relic", InputActionType.Button);
+        runtimeAction.AddBinding("<XRController>{RightHand}/triggerPressed");
+        runtimeAction.AddBinding("<Keyboard>/p");
+        return runtimeAction;
     }
 }

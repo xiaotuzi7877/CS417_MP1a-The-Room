@@ -18,6 +18,8 @@ public class BreakOut : MonoBehaviour
     private Quaternion insideRotation;
 
     private bool isOutside = false;
+    private InputAction activeAction;
+    private InputAction runtimeAction;
 
     private void Start()
     {
@@ -27,20 +29,22 @@ public class BreakOut : MonoBehaviour
 
     private void OnEnable()
     {
-        if (action != null)
-        {
-            action.action.Enable();
-            action.action.performed += OnBreakOut;
-        }
+        activeAction = action != null ? action.action : CreateRuntimeAction();
+        activeAction.performed += OnBreakOut;
+        activeAction.Enable();
     }
 
     private void OnDisable()
     {
-        if (action != null)
+        if (activeAction != null)
         {
-            action.action.performed -= OnBreakOut;
-            action.action.Disable();
+            activeAction.performed -= OnBreakOut;
+            activeAction.Disable();
         }
+
+        runtimeAction?.Dispose();
+        runtimeAction = null;
+        activeAction = null;
     }
 
     private void OnBreakOut(InputAction.CallbackContext ctx)
@@ -81,5 +85,13 @@ public class BreakOut : MonoBehaviour
 
             Debug.Log("Break Out: Inside with particle feedback");
         }
+    }
+
+    private InputAction CreateRuntimeAction()
+    {
+        runtimeAction = new InputAction("Break Out", InputActionType.Button);
+        runtimeAction.AddBinding("<XRController>{RightHand}/secondaryButton");
+        runtimeAction.AddBinding("<Keyboard>/b");
+        return runtimeAction;
     }
 }
