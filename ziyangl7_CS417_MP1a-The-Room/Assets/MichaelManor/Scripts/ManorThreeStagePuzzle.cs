@@ -88,6 +88,25 @@ namespace MichaelManor
             ApplyResetState();
         }
 
+        private void Start()
+        {
+            // Socket Interactor initializes an internal coroutine in Awake. Keeping generated
+            // sockets disabled in the saved scene and enabling here also works when Fast Enter
+            // Play Mode skips a domain reload.
+            if (sockets == null)
+            {
+                return;
+            }
+
+            foreach (XRSocketInteractor socket in sockets)
+            {
+                if (socket != null)
+                {
+                    socket.enabled = true;
+                }
+            }
+        }
+
         private void OnEnable()
         {
             if (sockets == null)
@@ -269,6 +288,14 @@ namespace MichaelManor
             }
 
             artifact.gameObject.SetActive(true);
+            Rigidbody body = artifact.GetComponent<Rigidbody>();
+            if (body != null)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+                body.isKinematic = true;
+            }
+
             Vector3 targetScale = artifactStartLocalScales[artifactIndex];
             artifact.transform.localScale = targetScale * 0.08f;
             float elapsed = 0f;
@@ -281,6 +308,10 @@ namespace MichaelManor
             }
 
             artifact.transform.localScale = targetScale;
+            if (body != null)
+            {
+                body.isKinematic = artifactStartKinematic[artifactIndex];
+            }
         }
 
         private IEnumerator OpenExitAndCelebrate()
@@ -292,7 +323,7 @@ namespace MichaelManor
 
             if (progressText != null)
             {
-                progressText.text = "RITUAL PROGRESS  3 / 3\nESCAPE UNLOCKED";
+                progressText.text = "RITUAL PROGRESS  3 / 3\nESCAPE UNLOCKED\nRITUAL CLUES FOUND  3 / 3";
             }
 
             float elapsed = 0f;
@@ -364,12 +395,13 @@ namespace MichaelManor
         public void SolveAllForPresentation()
         {
             StopAllCoroutines();
+            CacheStartState();
+            ApplyResetState();
             StartCoroutine(SolveAllPresentationRoutine());
         }
 
         private IEnumerator SolveAllPresentationRoutine()
         {
-            ResetPuzzle();
             yield return null;
             for (int i = 0; i < StageCount; i++)
             {
@@ -384,6 +416,7 @@ namespace MichaelManor
                 Transform anchor = socket.attachTransform != null ? socket.attachTransform : socket.transform;
                 artifact.transform.SetPositionAndRotation(anchor.position, anchor.rotation);
                 BeginStage(i, artifact);
+                yield return null;
                 while (isAnimating)
                 {
                     yield return null;
@@ -548,7 +581,8 @@ namespace MichaelManor
             if (progressText != null)
             {
                 progressText.text = $"RITUAL PROGRESS  {currentStage} / {StageCount}\n" +
-                                    $"LOCKS REMAINING  {Mathf.Max(0, StageCount - currentStage)}";
+                                    $"LOCKS REMAINING  {Mathf.Max(0, StageCount - currentStage)}\n" +
+                                    $"RITUAL CLUES FOUND  {currentStage} / {StageCount}";
             }
 
             if (instructionText == null)
