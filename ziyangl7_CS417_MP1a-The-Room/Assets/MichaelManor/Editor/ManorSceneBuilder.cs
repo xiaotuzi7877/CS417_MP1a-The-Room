@@ -247,7 +247,7 @@ namespace MichaelManorEditor
                 celestialPlanet,
                 celestialMoon,
                 celestialComet);
-            BuildPuzzle(puzzle, winFlow, stone, darkWood, gold, silver, spectralGlow, candleGlow);
+            BuildPuzzle(puzzle, winFlow, stone, darkWood, gold, silver, blackIron, spectralGlow, candleGlow);
             PositionXrRig(scene);
             ConfigureXrEventSystem(scene);
             MoveSourceObjectUnder(scene, "Global Volume", systems);
@@ -778,6 +778,7 @@ namespace MichaelManorEditor
             Material darkWood,
             Material gold,
             Material silver,
+            Material blackIron,
             Material spectralGlow,
             Material candleGlow)
         {
@@ -829,19 +830,19 @@ namespace MichaelManorEditor
 
             successFeedback.gameObject.SetActive(false);
 
-            GameObject fang = CreatePrimitive(
-                "SilverFang",
-                PrimitiveType.Capsule,
-                silverFangQuest,
-                new Vector3(-5.2f, 1.35f, -10.5f),
-                new Vector3(0.24f, 0.68f, 0.24f),
-                silver);
-            fang.transform.rotation = Quaternion.Euler(0f, 0f, -18f);
+            GameObject fang = new GameObject("SilverFang");
+            fang.transform.SetParent(silverFangQuest, false);
+            fang.transform.localPosition = new Vector3(-5.2f, 1.65f, -10.5f);
+            fang.transform.localRotation = Quaternion.Euler(8f, -20f, -12f);
+            ManorPuzzleEnhancer.BuildSilverFangVisual(fang.transform, silver, gold, blackIron, spectralGlow);
             Rigidbody fangBody = fang.AddComponent<Rigidbody>();
-            fangBody.mass = 0.2f;
+            fangBody.mass = 0.35f;
+            fangBody.centerOfMass = new Vector3(0f, -0.08f, 0f);
             fangBody.interpolation = RigidbodyInterpolation.Interpolate;
             fangBody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            fang.AddComponent<XRGrabInteractable>();
+            XRGrabInteractable fangGrab = fang.AddComponent<XRGrabInteractable>();
+            fangGrab.attachTransform = fang.transform.Find("GrabAttach");
+            fangGrab.useDynamicAttach = false;
             ManorKeyArtifact artifact = fang.AddComponent<ManorKeyArtifact>();
             artifact.Configure("SilverFang");
 
