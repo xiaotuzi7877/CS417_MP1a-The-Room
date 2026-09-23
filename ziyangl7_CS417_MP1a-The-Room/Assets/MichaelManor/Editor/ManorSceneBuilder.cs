@@ -129,6 +129,15 @@ namespace MichaelManorEditor
                 $"{WornWoodFloorFolder}/wood_floor_worn_diff_2k.jpg",
                 $"{WornWoodFloorFolder}/wood_floor_worn_nor_gl_2k.jpg",
                 $"{WornWoodFloorFolder}/wood_floor_worn_ao_2k.jpg");
+            Material doorWood = EnsureTexturedMaterial(
+                "ExitDoorWood",
+                new Color(0.24f, 0.12f, 0.065f),
+                0.02f,
+                0.25f,
+                new Vector2(1.1f, 2.8f),
+                $"{WornWoodFloorFolder}/wood_floor_worn_diff_2k.jpg",
+                $"{WornWoodFloorFolder}/wood_floor_worn_nor_gl_2k.jpg",
+                $"{WornWoodFloorFolder}/wood_floor_worn_ao_2k.jpg");
             Material darkWood = EnsureMaterial("DarkWood", new Color(0.105f, 0.045f, 0.028f), 0f, 0.30f);
             Material woodHighlight = EnsureMaterial("WoodHighlight", new Color(0.22f, 0.075f, 0.035f), 0f, 0.25f);
             Material gold = EnsureMaterial("AntiqueGold", new Color(0.48f, 0.28f, 0.07f), 0.62f, 0.38f);
@@ -227,7 +236,7 @@ namespace MichaelManorEditor
             Transform exitDoor = NewRoot("ExitDoor");
             Transform winFlow = NewGroup("WinFlow", systems);
 
-            BuildArchitecture(architecture, exitDoor, plaster, damagedPlaster, stone, floorWood, darkWood, woodHighlight, blackIron);
+            BuildArchitecture(architecture, exitDoor, plaster, damagedPlaster, stone, floorWood, doorWood, darkWood, woodHighlight, blackIron);
             BuildDecor(decor, furniture, gold, portraitRed, portraitBlue, gothicTable, woodenChair, woodenSofa, woodenCabinet);
             BuildLighting(lighting, blackIron, gold, candleGlow, lanternMetal, lanternGlass);
             BuildOrrery(
@@ -348,6 +357,51 @@ namespace MichaelManorEditor
             Debug.Log("Installed eight gothic wall lanterns with warm VR-friendly lighting.");
         }
 
+        [MenuItem("Tools/Michael Manor/Enhance Exit Door")]
+        public static void EnhanceExitDoor()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            GameObject doorObject = GameObject.Find("ExitDoor");
+            GameObject wallsObject = GameObject.Find("Walls");
+            if (!scene.IsValid() || !scene.isLoaded || doorObject == null || wallsObject == null)
+            {
+                Debug.LogError("Open Michael Manor Hall before enhancing its exit door.");
+                return;
+            }
+
+            Material doorWood = EnsureTexturedMaterial(
+                "ExitDoorWood",
+                new Color(0.24f, 0.12f, 0.065f),
+                0.02f,
+                0.25f,
+                new Vector2(1.1f, 2.8f),
+                $"{WornWoodFloorFolder}/wood_floor_worn_diff_2k.jpg",
+                $"{WornWoodFloorFolder}/wood_floor_worn_nor_gl_2k.jpg",
+                $"{WornWoodFloorFolder}/wood_floor_worn_ao_2k.jpg");
+            Material darkWood = EnsureMaterial("DarkWood", new Color(0.105f, 0.045f, 0.028f), 0f, 0.30f);
+            Material woodHighlight = EnsureMaterial("WoodHighlight", new Color(0.22f, 0.075f, 0.035f), 0f, 0.25f);
+            Material blackIron = EnsureMaterial("BlackIron", new Color(0.025f, 0.027f, 0.033f), 0.78f, 0.28f);
+            Material stone = EnsureMaterial("ManorStone", new Color(0.13f, 0.14f, 0.16f), 0f, 0.15f);
+
+            Transform door = doorObject.transform;
+            while (door.childCount > 0)
+            {
+                Undo.DestroyObjectImmediate(door.GetChild(0).gameObject);
+            }
+
+            Transform oldFrame = wallsObject.transform.Find("ExitDoor_Frame");
+            if (oldFrame != null)
+            {
+                Undo.DestroyObjectImmediate(oldFrame.gameObject);
+            }
+
+            BuildExitDoor(door, wallsObject.transform, doorWood, darkWood, woodHighlight, blackIron, stone);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("Sealed and enhanced the exit door with textured timber and ironwork.");
+        }
+
         [MenuItem("Tools/Michael Manor/Preview Puzzle Completion")]
         private static void PreviewPuzzleCompletion()
         {
@@ -371,6 +425,7 @@ namespace MichaelManorEditor
             Material damagedPlaster,
             Material stone,
             Material floorWood,
+            Material doorWood,
             Material darkWood,
             Material woodHighlight,
             Material blackIron)
@@ -417,13 +472,76 @@ namespace MichaelManorEditor
                 CreatePrimitive($"UpperCornice_{side}", PrimitiveType.Cube, wallDetails, new Vector3(x - side * 0.05f, 11.95f, 0f), new Vector3(0.28f, 0.28f, 31f), woodHighlight, false);
             }
 
-            CreatePrimitive("DoorPanel", PrimitiveType.Cube, door, new Vector3(0f, 2.75f, 15.78f), new Vector3(4.35f, 5.5f, 0.42f), darkWood);
-            for (int i = -1; i <= 1; i++)
+            BuildExitDoor(door, walls, doorWood, darkWood, woodHighlight, blackIron, stone);
+        }
+
+        private static void BuildExitDoor(
+            Transform door,
+            Transform walls,
+            Material doorWood,
+            Material darkWood,
+            Material woodHighlight,
+            Material blackIron,
+            Material stone)
+        {
+            Transform frame = NewGroup("ExitDoor_Frame", walls);
+            CreatePrimitive("LintelCore", PrimitiveType.Cube, frame, new Vector3(0f, 6.25f, 15.94f), new Vector3(4.65f, 1.55f, 0.56f), stone);
+            CreatePrimitive("LintelBeam", PrimitiveType.Cube, frame, new Vector3(0f, 5.72f, 15.54f), new Vector3(5.15f, 0.38f, 0.34f), darkWood, false);
+            CreatePrimitive("Jamb_Left", PrimitiveType.Cube, frame, new Vector3(-2.38f, 3.05f, 15.58f), new Vector3(0.42f, 6.25f, 0.38f), darkWood, false);
+            CreatePrimitive("Jamb_Right", PrimitiveType.Cube, frame, new Vector3(2.38f, 3.05f, 15.58f), new Vector3(0.42f, 6.25f, 0.38f), darkWood, false);
+            CreatePrimitive("LintelTrim", PrimitiveType.Cube, frame, new Vector3(0f, 6.72f, 15.52f), new Vector3(5.35f, 0.18f, 0.18f), woodHighlight, false);
+
+            CreatePrimitive("DoorBacking", PrimitiveType.Cube, door, new Vector3(0f, 2.80f, 15.78f), new Vector3(4.52f, 5.62f, 0.48f), darkWood);
+            for (int i = 0; i < 5; i++)
             {
-                CreatePrimitive($"DoorIron_{i}", PrimitiveType.Cube, door, new Vector3(i * 1.25f, 2.75f, 15.52f), new Vector3(0.14f, 5.1f, 0.12f), blackIron, false);
+                float x = -1.76f + i * 0.88f;
+                CreatePrimitive(
+                    $"DoorPlank_{i:00}",
+                    PrimitiveType.Cube,
+                    door,
+                    new Vector3(x, 2.80f, 15.49f),
+                    new Vector3(0.82f, 5.42f, 0.10f),
+                    doorWood,
+                    false);
             }
 
-            CreatePrimitive("DoorCrossbar", PrimitiveType.Cube, door, new Vector3(0f, 2.75f, 15.48f), new Vector3(4.1f, 0.16f, 0.13f), blackIron, false);
+            float[] strapHeights = { 0.78f, 2.80f, 4.82f };
+            for (int strap = 0; strap < strapHeights.Length; strap++)
+            {
+                float y = strapHeights[strap];
+                CreatePrimitive(
+                    $"IronStrap_{strap:00}",
+                    PrimitiveType.Cube,
+                    door,
+                    new Vector3(0f, y, 15.39f),
+                    new Vector3(4.30f, 0.15f, 0.09f),
+                    blackIron,
+                    false);
+
+                for (int rivet = -2; rivet <= 2; rivet++)
+                {
+                    CreatePrimitive(
+                        $"Rivet_{strap:00}_{rivet + 2:00}",
+                        PrimitiveType.Sphere,
+                        door,
+                        new Vector3(rivet * 0.88f, y, 15.31f),
+                        new Vector3(0.10f, 0.10f, 0.055f),
+                        blackIron,
+                        false);
+                }
+            }
+
+            CreatePrimitive("IronSpine", PrimitiveType.Cube, door, new Vector3(0f, 2.80f, 15.40f), new Vector3(0.13f, 5.25f, 0.09f), blackIron, false);
+            GameObject handleBase = CreatePrimitive(
+                "DoorHandleBase",
+                PrimitiveType.Cylinder,
+                door,
+                new Vector3(1.28f, 2.55f, 15.28f),
+                new Vector3(0.18f, 0.11f, 0.18f),
+                blackIron,
+                false);
+            handleBase.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            CreatePrimitive("DoorHandle", PrimitiveType.Sphere, door, new Vector3(1.28f, 2.55f, 15.13f), new Vector3(0.16f, 0.16f, 0.12f), woodHighlight, false);
         }
 
         private static void BuildDecor(
