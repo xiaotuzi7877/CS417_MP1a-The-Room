@@ -11,11 +11,18 @@ namespace MichaelManor
     public sealed class ManorPresentationShortcuts : MonoBehaviour
     {
         [SerializeField] private ManorPuzzleSocket puzzle;
+        [SerializeField] private ManorThreeStagePuzzle threeStagePuzzle;
         [SerializeField] private WinCelebrationController celebration;
 
         public void Configure(ManorPuzzleSocket puzzleSocket, WinCelebrationController winCelebration)
         {
             puzzle = puzzleSocket;
+            celebration = winCelebration;
+        }
+
+        public void Configure(ManorThreeStagePuzzle sequence, WinCelebrationController winCelebration)
+        {
+            threeStagePuzzle = sequence;
             celebration = winCelebration;
         }
 
@@ -47,7 +54,12 @@ namespace MichaelManor
         {
             ResetPresentation();
             yield return null;
-            if (puzzle != null)
+            if (threeStagePuzzle != null)
+            {
+                threeStagePuzzle.SolveAllForPresentation();
+                Debug.Log("Presentation shortcut K: playing the complete three-lock ritual.");
+            }
+            else if (puzzle != null)
             {
                 puzzle.SolvePuzzle();
                 Debug.Log("Presentation shortcut K: playing Silver Fang insertion and door unlock.");
@@ -68,7 +80,11 @@ namespace MichaelManor
 
         private void ResetPresentation()
         {
-            if (puzzle != null)
+            if (threeStagePuzzle != null)
+            {
+                threeStagePuzzle.ResetPuzzle();
+            }
+            else if (puzzle != null)
             {
                 puzzle.ResetPuzzle();
             }
