@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using MichaelManor;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -171,6 +172,47 @@ namespace MichaelManorEditor
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
             Debug.Log("Installed presentation shortcuts: K unlock, W win celebration, R reset.");
+        }
+
+        [MenuItem("Tools/Michael Manor/Install Congratulations Finale")]
+        public static void InstallCongratulationsFinale()
+        {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            WinCelebrationController celebration = Object.FindAnyObjectByType<WinCelebrationController>();
+            GameObject textObject = FindSceneObject(scene, "WinText");
+            if (celebration == null || textObject == null)
+            {
+                Debug.LogError("Win Celebration controller or WinText is missing from MichaelManorHall.");
+                return;
+            }
+
+            TextMeshPro text = textObject.GetComponent<TextMeshPro>();
+            text.text = "CONGRATULATIONS!";
+            text.fontStyle = FontStyles.Bold;
+            text.fontSize = 18f;
+            text.enableAutoSizing = true;
+            text.enableWordWrapping = false;
+            text.fontSizeMin = 8f;
+            text.fontSizeMax = 18f;
+            text.alignment = TextAlignmentOptions.Center;
+            text.color = new Color(0.82f, 0.94f, 1f, 0f);
+            text.outlineColor = new Color32(25, 8, 38, 255);
+            text.outlineWidth = 0.28f;
+            text.rectTransform.sizeDelta = new Vector2(20f, 2.2f);
+            textObject.transform.localPosition = new Vector3(0f, 3.55f, 14.60f);
+            textObject.transform.localRotation = Quaternion.identity;
+            textObject.transform.localScale = Vector3.one * 0.62f;
+
+            Transform celebrationRoot = textObject.transform.parent;
+            ParticleSystem[] particles = celebrationRoot.GetComponentsInChildren<ParticleSystem>(true);
+            AudioSource victoryAudio = celebration.GetComponent<AudioSource>();
+            celebration.Configure(celebrationRoot.gameObject, particles, victoryAudio, text);
+            textObject.SetActive(false);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("Installed the five-second CONGRATULATIONS finale inside the exit doorway.");
         }
 
         public static void BuildSilverFangVisual(

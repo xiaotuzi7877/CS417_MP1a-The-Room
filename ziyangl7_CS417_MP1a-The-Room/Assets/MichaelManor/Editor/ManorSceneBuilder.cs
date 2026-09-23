@@ -863,14 +863,22 @@ namespace MichaelManorEditor
 
             GameObject winTextObject = new GameObject("WinText");
             winTextObject.transform.SetParent(celebrationRoot, false);
-            winTextObject.transform.localPosition = new Vector3(0f, 6.25f, 14.85f);
-            winTextObject.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            winTextObject.transform.localPosition = new Vector3(0f, 3.55f, 14.60f);
+            winTextObject.transform.localRotation = Quaternion.identity;
+            winTextObject.transform.localScale = Vector3.one * 0.62f;
             TextMeshPro winText = winTextObject.AddComponent<TextMeshPro>();
-            winText.text = "YOU ESCAPED THE MANOR";
-            winText.fontSize = 2.2f;
+            winText.text = "CONGRATULATIONS!";
+            winText.fontStyle = FontStyles.Bold;
+            winText.fontSize = 18f;
+            winText.enableAutoSizing = true;
+            winText.enableWordWrapping = false;
+            winText.fontSizeMin = 8f;
+            winText.fontSizeMax = 18f;
             winText.alignment = TextAlignmentOptions.Center;
-            winText.color = new Color(0.78f, 0.90f, 1f);
-            winText.rectTransform.sizeDelta = new Vector2(12f, 2.2f);
+            winText.color = new Color(0.82f, 0.94f, 1f, 0f);
+            winText.outlineColor = new Color32(25, 8, 38, 255);
+            winText.outlineWidth = 0.28f;
+            winText.rectTransform.sizeDelta = new Vector2(20f, 2.2f);
 
             ParticleSystem leftBurst = CreateCelebrationParticles("VictoryBurst_Left", celebrationRoot, new Vector3(-2.4f, 2.4f, 13.2f), spectralGlow);
             ParticleSystem rightBurst = CreateCelebrationParticles("VictoryBurst_Right", celebrationRoot, new Vector3(2.4f, 2.4f, 13.2f), candleGlow);
@@ -885,7 +893,7 @@ namespace MichaelManorEditor
             victoryLight.range = 12f;
 
             WinCelebrationController celebration = integrationParent.gameObject.AddComponent<WinCelebrationController>();
-            celebration.Configure(celebrationRoot.gameObject, new[] { leftBurst, rightBurst });
+            celebration.Configure(celebrationRoot.gameObject, new[] { leftBurst, rightBurst }, null, winText);
             UnityEventTools.AddPersistentListener(puzzleSocket.OnSolved, celebration.TriggerWin);
             ManorPresentationShortcuts shortcuts = integrationParent.gameObject.AddComponent<ManorPresentationShortcuts>();
             shortcuts.Configure(puzzleSocket, celebration);
