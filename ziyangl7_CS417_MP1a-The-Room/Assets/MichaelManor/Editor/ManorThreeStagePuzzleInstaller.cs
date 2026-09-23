@@ -81,7 +81,7 @@ namespace MichaelManorEditor
             moonstone.transform.SetParent(keysRoot, true);
             moonstone.transform.position = new Vector3(-8.35f, 5.75f, -9.3f);
             BuildMoonstone(moonstone.transform, moon, gold);
-            ConfigureKey(moonstone, "Moonstone", 0.24f);
+            ConfigureKey(moonstone, "Moonstone", 0.24f, 0.10f);
             moonstone.SetActive(false);
 
             // Lock II: returning the Moonstone to the orrery opens a reliquary on the table.
@@ -112,7 +112,7 @@ namespace MichaelManorEditor
             bloodSigil.transform.SetParent(keysRoot, true);
             bloodSigil.transform.position = new Vector3(5.20f, 1.52f, 3.0f);
             BuildBloodSigil(bloodSigil.transform, blood, gold, blackIron);
-            ConfigureKey(bloodSigil, "BloodSigil", 0.22f);
+            ConfigureKey(bloodSigil, "BloodSigil", 0.22f, 2.00f);
             bloodSigil.SetActive(false);
 
             // Lock III reuses the ornate final pedestal but now accepts the Blood Sigil.
@@ -360,12 +360,12 @@ namespace MichaelManorEditor
             target.localScale = scale;
         }
 
-        private static void ConfigureKey(GameObject key, string id, float colliderRadius)
+        private static void ConfigureKey(GameObject key, string id, float colliderRadius, float mass)
         {
             SphereCollider collider = key.AddComponent<SphereCollider>();
             collider.radius = colliderRadius;
             Rigidbody body = key.AddComponent<Rigidbody>();
-            body.mass = 0.28f;
+            body.mass = mass;
             body.interpolation = RigidbodyInterpolation.Interpolate;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             XRGrabInteractable grab = key.AddComponent<XRGrabInteractable>();

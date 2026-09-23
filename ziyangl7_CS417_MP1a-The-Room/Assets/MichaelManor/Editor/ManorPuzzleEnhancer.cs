@@ -48,7 +48,7 @@ namespace MichaelManorEditor
             Rigidbody body = fang.GetComponent<Rigidbody>();
             if (body != null)
             {
-                body.mass = 0.35f;
+                body.mass = 0.80f;
                 body.centerOfMass = new Vector3(0f, -0.08f, 0f);
                 body.interpolation = RigidbodyInterpolation.Interpolate;
                 body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;

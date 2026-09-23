@@ -836,7 +836,7 @@ namespace MichaelManorEditor
             fang.transform.localRotation = Quaternion.Euler(8f, -20f, -12f);
             ManorPuzzleEnhancer.BuildSilverFangVisual(fang.transform, silver, gold, blackIron, spectralGlow);
             Rigidbody fangBody = fang.AddComponent<Rigidbody>();
-            fangBody.mass = 0.35f;
+            fangBody.mass = 0.80f;
             fangBody.centerOfMass = new Vector3(0f, -0.08f, 0f);
             fangBody.interpolation = RigidbodyInterpolation.Interpolate;
             fangBody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
