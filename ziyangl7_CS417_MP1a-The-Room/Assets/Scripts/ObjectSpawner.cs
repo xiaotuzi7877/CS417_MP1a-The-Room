@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using MichaelManor;
 
 public class ObjectSpawner : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class ObjectSpawner : MonoBehaviour
 
     public Transform attractor;
     public float gravity = 0.2f;
+    public ManorFeedbackNetwork feedbackNetwork;
 
     private InputAction activeAction;
     private InputAction runtimeAction;
@@ -156,6 +158,8 @@ public class ObjectSpawner : MonoBehaviour
                 Quaternion.identity
             );
         }
+
+        feedbackNetwork?.PlaySpawnFeedback();
 
         Debug.Log(
             "Perfect Orbit spawned! " +

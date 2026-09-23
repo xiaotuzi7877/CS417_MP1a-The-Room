@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using MichaelManor;
 
 public class LightSwitch : MonoBehaviour
 {
@@ -7,6 +8,7 @@ public class LightSwitch : MonoBehaviour
 
     public ParticleSystem lightBurstPrefab;
     public Transform burstPoint;
+    public ManorFeedbackNetwork feedbackNetwork;
 
     private Light roomLight;
     private bool alternateColor = false;
@@ -65,6 +67,8 @@ public class LightSwitch : MonoBehaviour
                 Quaternion.identity
             );
         }
+
+        feedbackNetwork?.PlayLightFeedback();
 
         Debug.Log("LightSwitch triggered with particle feedback!");
     }

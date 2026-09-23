@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using MichaelManor;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -122,6 +123,106 @@ namespace MichaelManorEditor
             Debug.Log("Installed controller, light, breakout, spawning, and orbit requirements in MichaelManorHall.");
         }
 
+        [MenuItem("Tools/Michael Manor/Install Rubric Feedback Content")]
+        public static void InstallFeedbackContent()
+        {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            Transform interactions = FindSceneObject(scene, InteractionRootName);
+            if (interactions == null)
+            {
+                Debug.LogError("Install Rubric Interactions before installing feedback content.");
+                return;
+            }
+
+            Transform existing = FindSceneObject(scene, "Rubric_FeedbackNetwork");
+            if (existing != null)
+            {
+                Object.DestroyImmediate(existing.gameObject);
+            }
+
+            Transform root = new GameObject("Rubric_FeedbackNetwork").transform;
+            root.SetParent(interactions, false);
+
+            GameObject particlePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Perfabs/SpawnBurst.prefab");
+            AudioClip audioClip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/click.wav");
+
+            FeedbackBank spawn = CreateFeedbackBank(
+                root,
+                "Spawn",
+                new[]
+                {
+                    new Vector3(-4.5f, 1.1f, -4.5f), new Vector3(4.5f, 1.1f, -4.5f),
+                    new Vector3(-4.5f, 1.1f, 4.5f), new Vector3(4.5f, 1.1f, 4.5f)
+                },
+                new Color(0.25f, 0.85f, 1f),
+                particlePrefab,
+                audioClip);
+            FeedbackBank light = CreateFeedbackBank(
+                root,
+                "Light",
+                new[]
+                {
+                    new Vector3(-7.4f, 3.1f, -8.5f), new Vector3(7.4f, 3.1f, -8.5f),
+                    new Vector3(-7.4f, 3.1f, 8.5f), new Vector3(7.4f, 3.1f, 8.5f)
+                },
+                new Color(0.42f, 0.68f, 1f),
+                particlePrefab,
+                audioClip);
+            FeedbackBank breakOut = CreateFeedbackBank(
+                root,
+                "BreakOut",
+                new[]
+                {
+                    new Vector3(-6f, 1.2f, -12.5f), new Vector3(6f, 1.2f, -12.5f),
+                    new Vector3(-6f, 1.2f, 12.5f), new Vector3(6f, 1.2f, 12.5f)
+                },
+                new Color(0.75f, 0.18f, 1f),
+                particlePrefab,
+                audioClip);
+            FeedbackBank returnBank = CreateFeedbackBank(
+                root,
+                "Return",
+                new[]
+                {
+                    new Vector3(-2.5f, 0.8f, -10.5f), new Vector3(2.5f, 0.8f, -10.5f),
+                    new Vector3(-2.5f, 0.8f, 10.5f), new Vector3(2.5f, 0.8f, 10.5f)
+                },
+                new Color(0.30f, 1f, 0.55f),
+                particlePrefab,
+                audioClip);
+
+            ManorFeedbackNetwork network = root.gameObject.AddComponent<ManorFeedbackNetwork>();
+            network.Configure(
+                spawn.Particles, spawn.AudioSources,
+                light.Particles, light.AudioSources,
+                breakOut.Particles, breakOut.AudioSources,
+                returnBank.Particles, returnBank.AudioSources);
+
+            ObjectSpawner spawner = interactions.GetComponent<ObjectSpawner>();
+            BreakOut breakOutController = interactions.GetComponent<BreakOut>();
+            LightSwitch lightSwitch = FindSceneObject(scene, "CeilingPointLight_Rubric")?.GetComponent<LightSwitch>();
+            if (spawner != null)
+            {
+                spawner.feedbackNetwork = network;
+            }
+
+            if (breakOutController != null)
+            {
+                breakOutController.feedbackNetwork = network;
+            }
+
+            if (lightSwitch != null)
+            {
+                lightSwitch.feedbackNetwork = network;
+            }
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("Installed 16 particle emitters and 16 spatial audio generators in MichaelManorHall.");
+        }
+
         private static void CreateControlsCanvas(Transform parent)
         {
             GameObject canvasObject = new GameObject(
@@ -233,6 +334,67 @@ namespace MichaelManorEditor
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             return prefab != null ? prefab.GetComponent<ParticleSystem>() : null;
+        }
+
+        private static FeedbackBank CreateFeedbackBank(
+            Transform parent,
+            string cueName,
+            Vector3[] positions,
+            Color color,
+            GameObject particlePrefab,
+            AudioClip audioClip)
+        {
+            Transform bankRoot = new GameObject($"{cueName}_FeedbackBank").transform;
+            bankRoot.SetParent(parent, false);
+            List<ParticleSystem> particles = new List<ParticleSystem>();
+            List<AudioSource> audioSources = new List<AudioSource>();
+
+            for (int index = 0; index < positions.Length; index++)
+            {
+                Transform node = new GameObject($"{cueName}_Feedback_{index + 1:00}").transform;
+                node.SetParent(bankRoot, false);
+                node.position = positions[index];
+
+                if (particlePrefab != null)
+                {
+                    GameObject particleObject = PrefabUtility.InstantiatePrefab(particlePrefab, parent.gameObject.scene) as GameObject;
+                    particleObject.name = $"Particle_{index + 1:00}";
+                    particleObject.transform.SetParent(node, false);
+                    particleObject.transform.localPosition = Vector3.zero;
+                    ParticleSystem particle = particleObject.GetComponent<ParticleSystem>();
+                    ParticleSystem.MainModule main = particle.main;
+                    main.playOnAwake = false;
+                    main.stopAction = ParticleSystemStopAction.None;
+                    main.startColor = color;
+                    particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                    particles.Add(particle);
+                }
+
+                AudioSource audioSource = node.gameObject.AddComponent<AudioSource>();
+                audioSource.clip = audioClip;
+                audioSource.playOnAwake = false;
+                audioSource.spatialBlend = 1f;
+                audioSource.dopplerLevel = 0f;
+                audioSource.minDistance = 1.5f;
+                audioSource.maxDistance = 18f;
+                audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+                audioSource.volume = 0.22f;
+                audioSources.Add(audioSource);
+            }
+
+            return new FeedbackBank(particles.ToArray(), audioSources.ToArray());
+        }
+
+        private sealed class FeedbackBank
+        {
+            public FeedbackBank(ParticleSystem[] particles, AudioSource[] audioSources)
+            {
+                Particles = particles;
+                AudioSources = audioSources;
+            }
+
+            public ParticleSystem[] Particles { get; }
+            public AudioSource[] AudioSources { get; }
         }
 
         private static void ApplySilverFangOutline(Scene scene)

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using MichaelManor;
 
 public class BreakOut : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class BreakOut : MonoBehaviour
 
     public Transform insideBurstPoint;
     public Transform outsideBurstPoint;
+    public ManorFeedbackNetwork feedbackNetwork;
 
     private Vector3 insidePosition;
     private Quaternion insideRotation;
@@ -66,6 +68,8 @@ public class BreakOut : MonoBehaviour
                 );
             }
 
+            feedbackNetwork?.PlayBreakOutFeedback();
+
             Debug.Log("Break Out: Outside with particle feedback");
         }
         else
@@ -82,6 +86,8 @@ public class BreakOut : MonoBehaviour
                     Quaternion.identity
                 );
             }
+
+            feedbackNetwork?.PlayReturnFeedback();
 
             Debug.Log("Break Out: Inside with particle feedback");
         }
