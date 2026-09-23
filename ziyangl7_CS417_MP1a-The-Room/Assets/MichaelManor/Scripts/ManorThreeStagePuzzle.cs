@@ -596,9 +596,9 @@ namespace MichaelManor
 
             string[] clues =
             {
-                "I  -  THE SILVER FANG SILENCES THE WATCHER",
-                "II -  RETURN THE MOONSTONE TO THE HEAVENS",
-                "III - FEED THE BLOOD SIGIL TO THE EXIT SEAL"
+                "STEP I\nTAKE THE SILVER FANG FROM THE TABLE - PLACE IT IN THE GLOWING WATCHER LOCK",
+                "STEP II\nTAKE THE REVEALED MOONSTONE - RETURN IT TO THE CELESTIAL CONSOLE",
+                "STEP III\nTAKE THE BLOOD SIGIL FROM THE OPEN RELIQUARY - PLACE IT IN THE EXIT PEDESTAL"
             };
             instructionText.text = currentStage < clues.Length
                 ? clues[currentStage]

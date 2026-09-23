@@ -135,18 +135,23 @@ namespace MichaelManorEditor
 
             // In-world directions and scoring board remain visible in VR, not only in the editor.
             Transform board = NewGroup("RitualProgressBoard", cluesRoot);
-            board.position = new Vector3(5.45f, 2.50f, -10.72f);
+            board.position = new Vector3(1.55f, 2.65f, -15.28f);
             board.rotation = Quaternion.Euler(0f, 0f, 0f);
             CreatePart("BoardBacking", PrimitiveType.Cube, board, Vector3.zero,
-                new Vector3(2.05f, 1.18f, 0.08f), darkWood, false);
-            CreatePart("BoardFrameTop", PrimitiveType.Cube, board, new Vector3(0f, 0.66f, -0.02f),
-                new Vector3(2.25f, 0.07f, 0.12f), gold, false);
-            CreatePart("BoardFrameBottom", PrimitiveType.Cube, board, new Vector3(0f, -0.66f, -0.02f),
-                new Vector3(2.25f, 0.07f, 0.12f), gold, false);
-            TextMeshPro progress = CreateWorldText("ProgressText", board, new Vector3(0f, 0.16f, -0.08f),
-                new Vector2(3.8f, 1.02f), 3.2f, "RITUAL PROGRESS  0 / 3\nKEYS HIDDEN  2\nLOCKS REMAINING  3\nRITUAL CLUES IN HALL  3", gold);
-            TextMeshPro instructions = CreateWorldText("CurrentClueText", board, new Vector3(0f, -0.50f, -0.08f),
-                new Vector2(3.8f, 0.38f), 2.4f, "I - THE SILVER FANG SILENCES THE WATCHER", moon);
+                new Vector3(3.20f, 1.80f, 0.10f), darkWood, false);
+            CreatePart("BoardFrameTop", PrimitiveType.Cube, board, new Vector3(0f, 0.96f, 0.07f),
+                new Vector3(3.42f, 0.08f, 0.14f), gold, false);
+            CreatePart("BoardFrameBottom", PrimitiveType.Cube, board, new Vector3(0f, -0.96f, 0.07f),
+                new Vector3(3.42f, 0.08f, 0.14f), gold, false);
+            CreatePart("BoardFrameLeft", PrimitiveType.Cube, board, new Vector3(-1.72f, 0f, 0.07f),
+                new Vector3(0.08f, 1.92f, 0.14f), gold, false);
+            CreatePart("BoardFrameRight", PrimitiveType.Cube, board, new Vector3(1.72f, 0f, 0.07f),
+                new Vector3(0.08f, 1.92f, 0.14f), gold, false);
+            TextMeshPro progress = CreateWorldText("ProgressText", board, new Vector3(0f, 0.20f, 0.08f),
+                new Vector2(2.95f, 0.98f), 1.15f, "RITUAL PROGRESS  0 / 3\nKEYS HIDDEN  2\nLOCKS REMAINING  3\nRITUAL CLUES IN HALL  3", gold);
+            TextMeshPro instructions = CreateWorldText("CurrentClueText", board, new Vector3(0f, -0.58f, 0.08f),
+                new Vector2(2.95f, 0.52f), 0.72f,
+                "STEP I\nTAKE THE SILVER FANG FROM THE TABLE - PLACE IT IN THE GLOWING WATCHER LOCK", moon);
 
             CreatePlaque(cluesRoot, "Clue_01_Watcher", new Vector3(-7.98f, 2.65f, -9.3f),
                 Quaternion.Euler(0f, -90f, 0f), "I  FANG -> WATCHER", gold, darkWood);
@@ -183,10 +188,23 @@ namespace MichaelManorEditor
             }
             shortcuts.Configure(controller, celebration);
 
+            ApplyEntryMissionWallLayout(scene);
+
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
             Debug.Log("Installed three-stage ritual: Silver Fang, Moonstone, Blood Sigil, then escape.");
+        }
+
+        [MenuItem("Tools/Michael Manor/Layout Entry Mission Wall")]
+        public static void LayoutEntryMissionWall()
+        {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            ApplyEntryMissionWallLayout(scene);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("Entry view now faces the mission wall with both instruction panels aligned.");
         }
 
         [MenuItem("Tools/Michael Manor/Test Three Stage Ritual In Play Mode")]
@@ -241,6 +259,105 @@ namespace MichaelManorEditor
             CreatePart("RuneGlow", PrimitiveType.Sphere, root, new Vector3(0f, 0f, 0.02f),
                 Vector3.one * 0.12f, glow, false);
             return new SocketBuildResult { Socket = socket, StatusLight = light };
+        }
+
+        private static void ApplyEntryMissionWallLayout(Scene scene)
+        {
+            GameObject rig = FindSceneObject(scene, "XR Origin (XR Rig)");
+            GameObject controls = FindSceneObject(scene, "ControlsCanvas_WorldSpace");
+            GameObject boardObject = FindSceneObject(scene, "RitualProgressBoard");
+            if (rig == null || controls == null || boardObject == null)
+            {
+                Debug.LogError("Entry mission wall layout is missing the XR rig or an instruction panel.");
+                return;
+            }
+
+            rig.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+
+            controls.transform.position = new Vector3(-1.65f, 2.65f, -15.30f);
+            controls.transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            controls.transform.localScale = Vector3.one * 0.00285f;
+            TextMeshProUGUI controlsText = controls.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (controlsText != null)
+            {
+                controlsText.text =
+                    "<size=54><color=#E6B76A>MICHAEL MANOR</color></size>\n" +
+                    "<size=31><color=#D7C8B6>VR CONTROLS</color></size>\n\n" +
+                    "<size=24>Grip  -  pick up and hold a ritual artifact\n" +
+                    "Release inside a glowing ring  -  insert the artifact\n" +
+                    "Blue lock light  -  current ritual destination\n" +
+                    "Red lock flash  -  wrong artifact or wrong order\n" +
+                    "Right Trigger  -  launch orbiting relic\n" +
+                    "Left Primary  -  change hall light\n" +
+                    "Right Secondary  -  outside view / return\n" +
+                    "Right Primary  -  quit</size>";
+            }
+
+            Transform board = boardObject.transform;
+            board.position = new Vector3(1.55f, 2.65f, -15.28f);
+            board.rotation = Quaternion.identity;
+            SetLocalTransform(board.Find("BoardBacking"), Vector3.zero, new Vector3(3.20f, 1.80f, 0.10f));
+            SetLocalTransform(board.Find("BoardFrameTop"), new Vector3(0f, 0.96f, 0.07f), new Vector3(3.42f, 0.08f, 0.14f));
+            SetLocalTransform(board.Find("BoardFrameBottom"), new Vector3(0f, -0.96f, 0.07f), new Vector3(3.42f, 0.08f, 0.14f));
+
+            Material gold = LoadMaterial("AntiqueGold");
+            Transform leftFrame = board.Find("BoardFrameLeft");
+            if (leftFrame == null)
+            {
+                leftFrame = CreatePart("BoardFrameLeft", PrimitiveType.Cube, board, Vector3.zero,
+                    Vector3.one, gold, false).transform;
+            }
+            SetLocalTransform(leftFrame, new Vector3(-1.72f, 0f, 0.07f), new Vector3(0.08f, 1.92f, 0.14f));
+
+            Transform rightFrame = board.Find("BoardFrameRight");
+            if (rightFrame == null)
+            {
+                rightFrame = CreatePart("BoardFrameRight", PrimitiveType.Cube, board, Vector3.zero,
+                    Vector3.one, gold, false).transform;
+            }
+            SetLocalTransform(rightFrame, new Vector3(1.72f, 0f, 0.07f), new Vector3(0.08f, 1.92f, 0.14f));
+
+            TextMeshPro progress = board.Find("ProgressText")?.GetComponent<TextMeshPro>();
+            if (progress != null)
+            {
+                progress.transform.localPosition = new Vector3(0f, 0.20f, 0.08f);
+                progress.rectTransform.sizeDelta = new Vector2(2.95f, 0.98f);
+                progress.fontSize = 1.15f;
+                progress.fontStyle = FontStyles.Bold;
+                progress.alignment = TextAlignmentOptions.Center;
+                progress.color = new Color(1f, 0.76f, 0.28f, 1f);
+                progress.enableAutoSizing = true;
+                progress.fontSizeMin = 0.82f;
+                progress.fontSizeMax = 1.15f;
+            }
+
+            TextMeshPro clue = board.Find("CurrentClueText")?.GetComponent<TextMeshPro>();
+            if (clue != null)
+            {
+                clue.text =
+                    "STEP I\nTAKE THE SILVER FANG FROM THE TABLE - PLACE IT IN THE GLOWING WATCHER LOCK";
+                clue.transform.localPosition = new Vector3(0f, -0.58f, 0.08f);
+                clue.rectTransform.sizeDelta = new Vector2(2.95f, 0.52f);
+                clue.fontSize = 0.72f;
+                clue.fontStyle = FontStyles.Bold;
+                clue.alignment = TextAlignmentOptions.Center;
+                clue.color = new Color(0.58f, 0.88f, 1f, 1f);
+                clue.enableWordWrapping = true;
+                clue.enableAutoSizing = true;
+                clue.fontSizeMin = 0.48f;
+                clue.fontSizeMax = 0.72f;
+            }
+        }
+
+        private static void SetLocalTransform(Transform target, Vector3 position, Vector3 scale)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            target.localPosition = position;
+            target.localScale = scale;
         }
 
         private static void ConfigureKey(GameObject key, string id, float colliderRadius)
