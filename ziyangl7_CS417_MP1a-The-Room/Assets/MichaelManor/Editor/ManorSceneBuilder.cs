@@ -28,6 +28,8 @@ namespace MichaelManorEditor
         private const string WoodenChairFolder = FurnitureFolder + "/WoodenChair01";
         private const string WoodenSofaFolder = FurnitureFolder + "/PaintedWoodenSofa";
         private const string WoodenCabinetFolder = FurnitureFolder + "/PaintedWoodenCabinet";
+        private const string LanternFolder = FurnitureFolder + "/LanternChandelier01";
+        private const string LanternModelPath = LanternFolder + "/lantern_chandelier_01_1k.fbx";
 
         private static readonly string[] LegacyRootNames =
         {
@@ -204,6 +206,8 @@ namespace MichaelManorEditor
                 0.26f,
                 $"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_diff_1k.jpg",
                 $"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_nor_gl_1k.exr");
+            Material lanternMetal = EnsureLanternMetalMaterial();
+            Material lanternGlass = EnsureLanternGlassMaterial();
 
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
@@ -225,7 +229,7 @@ namespace MichaelManorEditor
 
             BuildArchitecture(architecture, exitDoor, plaster, damagedPlaster, stone, floorWood, darkWood, woodHighlight, blackIron);
             BuildDecor(decor, furniture, gold, portraitRed, portraitBlue, gothicTable, woodenChair, woodenSofa, woodenCabinet);
-            BuildLighting(lighting, blackIron, gold, candleGlow);
+            BuildLighting(lighting, blackIron, gold, candleGlow, lanternMetal, lanternGlass);
             BuildOrrery(
                 gold,
                 blackIron,
@@ -298,6 +302,50 @@ namespace MichaelManorEditor
             Undo.RecordObject(portrait.transform, "Realign Manor Portraits");
             portrait.transform.SetPositionAndRotation(position, rotation);
             return 1;
+        }
+
+        [MenuItem("Tools/Michael Manor/Install Gothic Wall Lanterns")]
+        public static void InstallGothicWallLanterns()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            GameObject wallSconcesObject = GameObject.Find("Wall_Sconces");
+            if (!scene.IsValid() || !scene.isLoaded || wallSconcesObject == null)
+            {
+                Debug.LogError("Open Michael Manor Hall before installing its wall lanterns.");
+                return;
+            }
+
+            AssetDatabase.Refresh();
+            ConfigureLanternImports();
+            GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(LanternModelPath);
+            if (modelAsset == null)
+            {
+                Debug.LogError($"Gothic lantern model was not found: {LanternModelPath}");
+                return;
+            }
+
+            Material blackIron = EnsureMaterial("BlackIron", new Color(0.025f, 0.027f, 0.033f), 0.78f, 0.28f);
+            Material gold = EnsureMaterial("AntiqueGold", new Color(0.48f, 0.28f, 0.07f), 0.62f, 0.38f);
+            Material lanternMetal = EnsureLanternMetalMaterial();
+            Material lanternGlass = EnsureLanternGlassMaterial();
+            Transform wallSconces = wallSconcesObject.transform;
+
+            while (wallSconces.childCount > 0)
+            {
+                Undo.DestroyObjectImmediate(wallSconces.GetChild(0).gameObject);
+            }
+
+            float[] zPositions = { -9.3f, -3.1f, 3.1f, 9.3f };
+            foreach (float z in zPositions)
+            {
+                CreateSconce(wallSconces, new Vector3(-8.35f, 3.9f, z), blackIron, gold, lanternMetal, lanternGlass);
+                CreateSconce(wallSconces, new Vector3(8.35f, 3.9f, z), blackIron, gold, lanternMetal, lanternGlass);
+            }
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("Installed eight gothic wall lanterns with warm VR-friendly lighting.");
         }
 
         [MenuItem("Tools/Michael Manor/Preview Puzzle Completion")]
@@ -503,7 +551,13 @@ namespace MichaelManorEditor
             CreatePrimitive("Runner", PrimitiveType.Cube, floorDecor, new Vector3(0f, 0.11f, 1.5f), new Vector3(3.4f, 0.025f, 23f), portraitRed, false);
         }
 
-        private static void BuildLighting(Transform parent, Material blackIron, Material gold, Material candleGlow)
+        private static void BuildLighting(
+            Transform parent,
+            Material blackIron,
+            Material gold,
+            Material candleGlow,
+            Material lanternMetal,
+            Material lanternGlass)
         {
             Transform ambient = NewGroup("Ambient", parent);
             Transform chandeliers = NewGroup("Chandeliers", parent);
@@ -520,11 +574,11 @@ namespace MichaelManorEditor
             CreateChandelier("Chandelier_North", chandeliers, new Vector3(0f, 11.45f, 8.7f), blackIron, gold, candleGlow);
             CreateChandelier("Chandelier_South", chandeliers, new Vector3(0f, 11.45f, -8.7f), blackIron, gold, candleGlow);
 
-            float[] zPositions = { -11f, -3.5f, 4f, 11f };
+            float[] zPositions = { -9.3f, -3.1f, 3.1f, 9.3f };
             foreach (float z in zPositions)
             {
-                CreateSconce(wallSconces, new Vector3(-8.35f, 4.1f, z), candleGlow, gold);
-                CreateSconce(wallSconces, new Vector3(8.35f, 4.1f, z), candleGlow, gold);
+                CreateSconce(wallSconces, new Vector3(-8.35f, 3.9f, z), blackIron, gold, lanternMetal, lanternGlass);
+                CreateSconce(wallSconces, new Vector3(8.35f, 3.9f, z), blackIron, gold, lanternMetal, lanternGlass);
             }
         }
 
@@ -927,19 +981,77 @@ namespace MichaelManorEditor
             lightObject.AddComponent<ManorLightFlicker>();
         }
 
-        private static void CreateSconce(Transform parent, Vector3 position, Material glow, Material metal)
+        private static void CreateSconce(
+            Transform parent,
+            Vector3 position,
+            Material blackIron,
+            Material gold,
+            Material lanternMetal,
+            Material lanternGlass)
         {
             Transform root = new GameObject($"Sconce_{position.x}_{position.z}").transform;
             root.SetParent(parent, false);
             root.position = position;
-            CreatePrimitive("Mount", PrimitiveType.Cube, root, Vector3.zero, new Vector3(0.20f, 0.75f, 0.55f), metal, false);
-            CreatePrimitive("Flame", PrimitiveType.Sphere, root, new Vector3(0f, 0.65f, 0f), new Vector3(0.20f, 0.34f, 0.20f), glow, false);
-            Light light = root.gameObject.AddComponent<Light>();
+            float inward = position.x < 0f ? 1f : -1f;
+
+            CreatePrimitive("WallPlate", PrimitiveType.Cube, root, Vector3.zero, new Vector3(0.16f, 0.82f, 0.50f), blackIron, false);
+            CreatePrimitive("BracketArm", PrimitiveType.Cube, root, new Vector3(inward * 0.32f, 0.08f, 0f), new Vector3(0.58f, 0.11f, 0.11f), blackIron, false);
+            CreatePrimitive("BracketCollar", PrimitiveType.Sphere, root, new Vector3(inward * 0.58f, 0.08f, 0f), new Vector3(0.22f, 0.22f, 0.22f), gold, false);
+
+            GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(LanternModelPath);
+            GameObject lantern = modelAsset == null ? null : PrefabUtility.InstantiatePrefab(modelAsset) as GameObject;
+            if (lantern != null)
+            {
+                lantern.name = "OrnateLanternModel";
+                lantern.transform.SetParent(root, false);
+                // Axis conversion is baked by the importer, leaving the lantern's
+                // hanging axis correctly aligned with Unity's vertical Y axis.
+                lantern.transform.localRotation = Quaternion.identity;
+                lantern.transform.localScale = Vector3.one;
+                AssignLanternMaterials(lantern, lanternMetal, lanternGlass);
+
+                Bounds initialBounds = CalculateWorldBounds(lantern);
+                if (initialBounds.size.y > 0.001f)
+                {
+                    lantern.transform.localScale *= 1.05f / initialBounds.size.y;
+                }
+
+                Bounds scaledBounds = CalculateWorldBounds(lantern);
+                Vector3 targetCenter = root.TransformPoint(new Vector3(inward * 0.62f, -0.30f, 0f));
+                lantern.transform.position += targetCenter - scaledBounds.center;
+            }
+
+            GameObject lightObject = new GameObject("WarmLight");
+            lightObject.transform.SetParent(root, false);
+            lightObject.transform.localPosition = new Vector3(inward * 0.62f, -0.30f, 0f);
+            Light light = lightObject.AddComponent<Light>();
             light.type = LightType.Point;
-            light.color = new Color(1f, 0.37f, 0.14f);
-            light.intensity = 180f;
-            light.range = 6.5f;
-            root.gameObject.AddComponent<ManorLightFlicker>();
+            light.color = new Color(1f, 0.53f, 0.25f);
+            light.intensity = 82f;
+            light.range = 4.8f;
+            light.shadows = LightShadows.None;
+            ManorLightFlicker flicker = lightObject.AddComponent<ManorLightFlicker>();
+            SerializedObject flickerSettings = new SerializedObject(flicker);
+            flickerSettings.FindProperty("variation").floatValue = 24f;
+            flickerSettings.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void AssignLanternMaterials(GameObject root, Material metal, Material glass)
+        {
+            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] materials = renderer.sharedMaterials;
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    string materialName = materials[i] == null ? string.Empty : materials[i].name.ToLowerInvariant();
+                    bool isGlass = materialName.Contains("glass") || renderer.name.ToLowerInvariant().Contains("glass");
+                    materials[i] = isGlass ? glass : metal;
+                }
+
+                renderer.sharedMaterials = materials;
+                renderer.shadowCastingMode = ShadowCastingMode.On;
+                renderer.receiveShadows = true;
+            }
         }
 
         private static ParticleSystem CreateCelebrationParticles(string name, Transform parent, Vector3 position, Material material)
@@ -1138,6 +1250,38 @@ namespace MichaelManorEditor
             return material;
         }
 
+        private static Material EnsureLanternMetalMaterial()
+        {
+            return EnsureFurnitureMaterial(
+                "GothicLanternMetal",
+                new Color(0.72f, 0.58f, 0.40f),
+                0.78f,
+                0.34f,
+                $"{LanternFolder}/textures/lantern_chandelier_01_diff_1k.jpg",
+                $"{LanternFolder}/textures/lantern_chandelier_01_nor_gl_1k.jpg");
+        }
+
+        private static Material EnsureLanternGlassMaterial()
+        {
+            Material material = EnsureMaterial(
+                "GothicLanternGlass",
+                new Color(0.72f, 0.34f, 0.12f, 0.48f),
+                0.05f,
+                0.72f,
+                new Color(0.68f, 0.18f, 0.035f));
+            Texture2D baseMap = AssetDatabase.LoadAssetAtPath<Texture2D>($"{LanternFolder}/textures/lantern_chandelier_01_glass_diff_1k.png");
+            material.SetTexture("_BaseMap", baseMap);
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue = (int)RenderQueue.Transparent;
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
         private static void ConfigurePbrTextureImports()
         {
             ConfigureTextureImport($"{WornPlasterFolder}/worn_plaster_wall_diff_2k.jpg", TextureImporterType.Default, true, 4);
@@ -1165,10 +1309,22 @@ namespace MichaelManorEditor
             ConfigureTextureImport($"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_rough_1k.exr", TextureImporterType.Default, false, 2);
             ConfigureTextureImport($"{WoodenCabinetFolder}/textures/painted_wooden_cabinet_metal_1k.exr", TextureImporterType.Default, false, 2);
 
+            ConfigureLanternImports();
+
             ConfigureFurnitureModelImport($"{GothicTableFolder}/gothic_coffee_table_1k.fbx");
             ConfigureFurnitureModelImport($"{WoodenChairFolder}/WoodenChair_01_1k.fbx");
             ConfigureFurnitureModelImport($"{WoodenSofaFolder}/painted_wooden_sofa_1k.fbx");
             ConfigureFurnitureModelImport($"{WoodenCabinetFolder}/painted_wooden_cabinet_1k.fbx");
+        }
+
+        private static void ConfigureLanternImports()
+        {
+            ConfigureTextureImport($"{LanternFolder}/textures/lantern_chandelier_01_diff_1k.jpg", TextureImporterType.Default, true, 4);
+            ConfigureTextureImport($"{LanternFolder}/textures/lantern_chandelier_01_nor_gl_1k.jpg", TextureImporterType.NormalMap, false, 4);
+            ConfigureTextureImport($"{LanternFolder}/textures/lantern_chandelier_01_rough_1k.jpg", TextureImporterType.Default, false, 2);
+            ConfigureTextureImport($"{LanternFolder}/textures/lantern_chandelier_01_glass_diff_1k.png", TextureImporterType.Default, true, 4);
+            ConfigureTextureImport($"{LanternFolder}/textures/lantern_chandelier_01_glass_alpha_1k.png", TextureImporterType.Default, false, 2);
+            ConfigureFurnitureModelImport(LanternModelPath);
         }
 
         private static void ConfigureFurnitureModelImport(string path)
