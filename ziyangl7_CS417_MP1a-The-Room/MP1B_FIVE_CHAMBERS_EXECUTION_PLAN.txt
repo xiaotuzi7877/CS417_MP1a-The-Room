@@ -1,0 +1,668 @@
+MP1B FIVE FALSE CHAMBERS - EXECUTION PLAN AND CROSS-CHAT TRACKER
+================================================================
+
+Project:
+  Michael Manor Hall / MP1b Escape Room
+
+Plan created:
+  2026-09-23
+
+Current baseline commit when this plan was created:
+  da5fc10 give ritual artifacts 20 to 1 mass range
+
+Primary goal:
+  Extend the existing three-lock ritual into a realistic five-chamber quest without
+  replacing the current manor, furniture, three Key Props, three Locks, exit door,
+  or Win Celebration.
+
+Target sidequest evidence:
+  - Reveals: 2 points
+  - Gate Affordance: 2 points
+  - Five Gated Locations: 3 points
+  - Puzzle System: 2 points
+  - Progress Scoreboard: 1 point
+  - Three Red Herrings: 2 points
+  - Existing Win Celebration: 2 points
+
+Planned experience:
+  Silver Fang
+  -> Watcher Lock
+  -> chest lid opens and reveals Midnight Codex
+  -> five Gate runes activate
+  -> four false chambers plus one true Moon Crypt
+  -> Wolf / Moon / Blood button sequence
+  -> slab moves and reveals Moonstone
+  -> Moonstone enters Celestial Lock
+  -> wall slab moves and reveals Blood Sigil
+  -> Return Rune sends player to hall
+  -> Blood Sigil enters Exit Lock
+  -> door, lights, and YOU WIN celebration
+
+
+NON-NEGOTIABLE WORK RULES
+=========================
+
+1. ONE CHAT / ONE MAJOR SECTION
+   A work session may complete only one numbered implementation Section below.
+   Do not begin the next Section, even if there is time left.
+
+2. READ THIS FILE FIRST
+   At the beginning of every future chat, read this entire file before changing
+   Unity, scripts, assets, or the scene.
+
+3. USER CHOOSES THE SECTION
+   The user should say, for example, "continue Section 3". If the user only says
+   "continue", resume the single Section marked IN PROGRESS. If no Section is
+   IN PROGRESS, continue the first NOT STARTED Section.
+
+4. UPDATE STATUS
+   Before implementation, change only the selected Section from NOT STARTED to
+   IN PROGRESS. After all acceptance checks pass, change it to DONE and add an
+   entry to the Completion Log at the bottom of this file.
+
+5. DO NOT CLAIM PARTIAL WORK AS DONE
+   If a Section is incomplete or fails validation, leave it IN PROGRESS and list
+   the remaining work under that Section's Notes field.
+
+6. COMMIT EACH COMPLETED SECTION
+   Each completed Section gets one focused git commit. Commit messages start with
+   lowercase letters and may be informal fragments. Do not push unless the user
+   explicitly requests a push.
+
+7. PRESERVE USER WORK
+   Do not stage unrelated Unity settings, SampleScene, generated Data/tmp files,
+   .DS_Store files, or unrelated prefab serialization.
+
+8. PROTECT THE MANUALLY ADJUSTED INSTRUCTION PANEL
+   Do not run:
+     Tools -> Michael Manor -> Layout Entry Mission Wall
+   That command can overwrite the user's manually adjusted panel placement.
+
+9. KEEP CURRENT CORE FEATURES WORKING
+   Every Section must preserve:
+   - three Key Props and three Lock events
+   - Silver Fang / Moonstone / Blood Sigil progression
+   - 20:1 Key Prop mass range
+   - orbiting celestial display
+   - final exit door
+   - Win Celebration and five-second Congratulations text
+   - presentation shortcuts unless a Section explicitly updates them
+
+10. END-OF-SECTION REPORT
+    At the end of every implementation chat, report exactly:
+    - completed Section number and title
+    - what changed
+    - Play Mode tests performed
+    - console error count
+    - commit hash and message
+    - whether it was pushed
+    - which Section should be done next
+
+
+STATUS SUMMARY
+==============
+
+  [DONE]        Section 0 - planning and tracker
+  [NOT STARTED] Section 1 - shared quest, chamber, and gate foundation
+  [NOT STARTED] Section 2 - Watcher Lock chest Reveal and Midnight Codex
+  [NOT STARTED] Section 3 - five hall Gates, teleport travel, and Return Runes
+  [NOT STARTED] Section 4 - Cellar Cache and Bone Closet
+  [NOT STARTED] Section 5 - Coffin Vault and Portrait Chamber
+  [NOT STARTED] Section 6 - Moon Crypt, three-button puzzle, and second Lock
+  [NOT STARTED] Section 7 - exploration tracking, scoreboard, and signifiers
+  [NOT STARTED] Section 8 - full integration, polish, rubric evidence, and QA
+
+
+SECTION 0 - PLANNING AND TRACKER
+================================
+
+Status:
+  DONE
+
+Scope:
+  Create this cross-chat implementation plan. No Unity gameplay changes.
+
+Acceptance criteria:
+  [x] New five-chamber proposal converted into numbered implementation Sections.
+  [x] Every Section has boundaries and acceptance criteria.
+  [x] Cross-chat status and completion logging rules documented.
+
+Notes:
+  This Section establishes the plan only.
+
+
+SECTION 1 - SHARED QUEST, CHAMBER, AND GATE FOUNDATION
+======================================================
+
+Status:
+  NOT STARTED
+
+Purpose:
+  Build the reusable code foundation before creating rooms or changing the main
+  ritual. This Section must not add finished chamber visuals.
+
+Implementation scope:
+  - Add a FiveChamberQuestController responsible for:
+      * whether the five Gates are locked or available
+      * which chambers have completed their internal interaction
+      * explored count from 0 to 5
+      * notifying visuals and scoreboard when state changes
+  - Add one reusable Gate component responsible for:
+      * locked/unlocked state
+      * player-initiated activation only
+      * destination and return-anchor references
+      * purple, blue-white, and explored color states
+  - Add one reusable chamber-interaction base or interface responsible for:
+      * allowing completion only once
+      * reporting completion to the quest controller
+      * activating feedback text
+  - Add a stable root hierarchy, without finished rooms:
+
+      MichaelManorHall
+      ├── Puzzle
+      │   └── FiveChamberQuest
+      │       ├── Gates
+      │       ├── ChamberState
+      │       └── SharedFeedback
+      └── GatedLocations
+          ├── Chamber_01_Cellar
+          ├── Chamber_02_BoneCloset
+          ├── Chamber_03_CoffinVault
+          ├── Chamber_04_Portrait
+          └── Chamber_05_MoonCrypt
+
+  - Add editor/install support so rebuilding the feature produces the same state.
+  - Do not hook Gate activation to the first Lock yet; that belongs to Section 2.
+  - Do not create actual teleport destinations yet; that belongs to Section 3.
+
+Acceptance criteria:
+  [ ] All new scripts compile with zero errors and zero warnings.
+  [ ] Controller can report locked state and explored count 0/5.
+  [ ] A test chamber interaction can register once but not twice.
+  [ ] Existing three-stage ritual still completes in Play Mode.
+  [ ] Existing instruction panel position is unchanged.
+  [ ] Scene validation reports no missing scripts or broken prefabs.
+
+Expected focused commit:
+  build five chamber quest foundation
+
+Notes:
+  None.
+
+
+SECTION 2 - WATCHER LOCK CHEST REVEAL AND MIDNIGHT CODEX
+========================================================
+
+Status:
+  NOT STARTED
+
+Purpose:
+  Make the first Lock create an obvious physical Reveal and teach the five-Gate
+  system without implementing teleport travel yet.
+
+Implementation scope:
+  - Add a closed gothic chest or wooden clue box on a suitable hall table.
+  - Add a separate animated lid that physically blocks the contents before Lock 1.
+  - Place inside the chest:
+      * a non-complex open Midnight Codex model/text display
+      * a five-entrance diagram or five-rune plaque
+  - Initial chest state:
+      * lid closed
+      * contents genuinely obscured and unreachable
+      * no floating text visible through the lid
+  - When Silver Fang enters the Watcher Lock:
+      * Watcher Lock changes blue -> green with eased feedback
+      * chest lid opens with an eased 1.0-1.5 second animation
+      * Codex and map become visible and reachable
+      * FiveChamberQuestController unlocks Gate availability
+  - Codex text:
+
+      THE MIDNIGHT CODEX
+
+      FIVE PASSAGES LIE WITHIN THIS MANOR.
+      FOUR ARE FALSE.
+      THE TRUE CHAMBER FOLLOWS THE MOON.
+
+      PURPLE RUNE = HIDDEN PASSAGE
+      TOUCH A RUNE TO ENTER.
+
+  - Keep the Codex simple; no page-turning system.
+
+Acceptance criteria:
+  [ ] Before Lock 1, the lid visibly obstructs the Codex and map.
+  [ ] Lock 1 opens the lid; teleporting/spawning alone is not used as the Reveal.
+  [ ] Lid animation is eased, not an instant position jump.
+  [ ] Gate availability changes only after Lock 1.
+  [ ] Reset restores the closed lid and hidden/restricted contents.
+  [ ] Existing Lock 1 sequence still records ritual progress 1/3.
+  [ ] Play Mode console has zero errors.
+
+Rubric evidence created by this Section:
+  - Reveals
+  - Eased State Changes reinforcement
+  - Gate instruction/signifier teaching
+
+Expected focused commit:
+  reveal codex after watcher lock
+
+Notes:
+  None.
+
+
+SECTION 3 - FIVE HALL GATES, TELEPORT TRAVEL, AND RETURN RUNES
+================================================================
+
+Status:
+  NOT STARTED
+
+Purpose:
+  Implement one reusable, player-initiated Gate system and make all five isolated
+  locations safely reachable and returnable in the same Unity Scene.
+
+Implementation scope:
+  - Create five hall entrance affordances:
+      1. loose floorboard / cellar rune
+      2. cabinet interior rune
+      3. coffin or funerary ornament rune
+      4. portrait eye/frame rune
+      5. moon painting / celestial rune
+  - Normal Gate color after Section 2 unlock: purple.
+  - Moon Crypt Gate color after unlock: blue-white.
+  - Before unlock, Gate runes are dark and non-interactable.
+  - A Gate must require an explicit player interaction. Entering a trigger volume
+    by itself must not teleport the player.
+  - Build five isolated room shells far from the hall in the same scene.
+  - Add one Spawn Point and one Return Rune to every shell.
+  - Return Rune requires explicit interaction and returns to a safe hall anchor.
+  - Preserve player head offset and facing so arrival is comfortable.
+  - Do not rotate or launch the XR camera during travel.
+  - If a short fade is reliable, use a shared brief fade; otherwise prioritize a
+    stable teleport with no nausea-inducing camera motion.
+  - Keep held objects attached during same-scene travel.
+  - Do not add the chamber-specific interactions yet.
+
+Acceptance criteria:
+  [ ] All five Gates remain disabled before Lock 1.
+  [ ] Every Gate requires deliberate interaction.
+  [ ] Every Gate reaches its unique isolated location.
+  [ ] Every Return Rune returns to a safe hall location.
+  [ ] No room can be reached by ordinary walking before using its Gate.
+  [ ] Held item remains held through travel when practical with the current XR rig.
+  [ ] Repeated entry/return does not offset or rotate the player incorrectly.
+  [ ] Existing ritual and manually adjusted instruction panels remain unchanged.
+  [ ] Play Mode console has zero errors.
+
+Rubric evidence created by this Section:
+  - Gate Affordance
+  - structural prerequisites for five Gated Locations
+
+Expected focused commit:
+  build reusable five gate travel
+
+Notes:
+  None.
+
+
+SECTION 4 - CELLAR CACHE AND BONE CLOSET
+========================================
+
+Status:
+  NOT STARTED
+
+Purpose:
+  Complete two valid gated locations and two clearly false Red Herrings using the
+  shared systems from Sections 1 and 3.
+
+Chamber 1 - Cellar Cache:
+  - Minimal dressing: barrel, crates, one green light.
+  - Interaction: player activates a visible lever or crank.
+  - Result: barrel/box obstruction opens and reveals Rusty Key.
+  - Feedback:
+
+      FALSE RELIC
+      THE MOON IS NOT HERE.
+
+  - Rusty Key requirements:
+      * unique recognizable model
+      * Rigidbody
+      * Grab Interactable
+      * mass within the established 0.10-2.00 kg project range
+      * no valid Lock relationship
+
+Chamber 2 - Bone Closet:
+  - Minimal dressing: skull, bones, one red light.
+  - Interaction: player presses a clearly signified button.
+  - Result: a small compartment opens and reveals Wooden Fang.
+  - Feedback:
+
+      FALSE RELIC
+      WOOD CANNOT BITE.
+
+  - Wooden Fang uses the same Red Herring requirements as Rusty Key.
+
+Acceptance criteria:
+  [ ] Each chamber contains one interaction unavailable before Gate travel.
+  [ ] Explored state increments only after the internal interaction succeeds.
+  [ ] Repeating the interaction does not increment twice.
+  [ ] Both false relics can be grabbed and tumble physically.
+  [ ] Neither false relic is accepted by a ritual Lock.
+  [ ] Player quickly receives clear FALSE RELIC feedback.
+  [ ] Return Runes remain usable.
+  [ ] Existing Key Prop max:min mass ratio remains exactly 20:1.
+  [ ] Play Mode console has zero errors.
+
+Rubric evidence created by this Section:
+  - two Gated Locations
+  - two of three planned Red Herrings
+
+Expected focused commit:
+  add cellar and bone closet chambers
+
+Notes:
+  None.
+
+
+SECTION 5 - COFFIN VAULT AND PORTRAIT CHAMBER
+==============================================
+
+Status:
+  NOT STARTED
+
+Purpose:
+  Complete the remaining two false chambers, the third Red Herring, and the direct
+  clue that makes the true Moon Crypt discoverable.
+
+Chamber 3 - Coffin Vault:
+  - Minimal dressing: coffin, two candles, black rose.
+  - Interaction: one clearly labeled OPEN button.
+  - Result: coffin lid opens with an eased animation and reveals Black Rose.
+  - Feedback:
+
+      FALSE RELIC
+      NOTHING OF THE MOON REMAINS HERE.
+
+  - Black Rose requirements:
+      * unique model
+      * Rigidbody
+      * Grab Interactable
+      * mass within 0.10-2.00 kg
+      * no valid Lock relationship
+
+Chamber 4 - Portrait Chamber:
+  - Minimal dressing: portraits and one visibly glowing eye/button.
+  - Interaction: player presses the glowing eye.
+  - Result: the moon clue and a moon symbol become visible.
+  - Feedback:
+
+      THE TRUE CHAMBER
+      BEARS THE MARK OF THE MOON.
+
+  - No jump scare, eye-tracking system, complex shader, or extra puzzle.
+
+Acceptance criteria:
+  [ ] Coffin and Portrait each contain a valid post-Gate interaction.
+  [ ] Coffin completion reveals a grabbable Black Rose.
+  [ ] Black Rose is obviously false and is rejected by ritual Locks.
+  [ ] Three total Red Herrings now have unique models, Rigidbodies, and grabs.
+  [ ] Portrait interaction reveals a readable Moon Crypt clue and moon symbol.
+  [ ] Explored count can reach 4/5 only after all four false interactions.
+  [ ] Return Runes remain usable.
+  [ ] Play Mode console has zero errors.
+
+Rubric evidence created by this Section:
+  - third and fourth Gated Locations
+  - third Red Herring
+  - Puzzle Discoverability support
+
+Expected focused commit:
+  add coffin and portrait chambers
+
+Notes:
+  None.
+
+
+SECTION 6 - MOON CRYPT, THREE-BUTTON PUZZLE, AND SECOND LOCK
+============================================================
+
+Status:
+  NOT STARTED
+
+Purpose:
+  Build the single substantial new puzzle, relocate the Moonstone reveal into the
+  true gated location, and reconnect it to the existing Blood Sigil progression.
+
+Moon Crypt environment:
+  - Use a simple stone room, central pedestal, moon lighting, and Celestial Lock.
+  - Reuse appropriate current manor materials and celestial motifs.
+  - Do not build physical rotating rune wheels or complex machinery.
+
+Three-button puzzle:
+  - Buttons:
+      [ WOLF ] [ MOON ] [ BLOOD ]
+  - Visible instruction:
+
+      PRESS IN ORDER:
+      1. WOLF
+      2. MOON
+      3. BLOOD
+
+  - Correct press:
+      * accepted button turns blue
+      * sequence index advances
+  - Incorrect press:
+      * all three buttons flash red briefly
+      * sequence resets to zero
+  - Correct full sequence:
+      * a stone slab physically moves aside with easing
+      * previously obstructed Moonstone becomes visible and reachable
+      * chamber internal interaction is marked complete
+
+Second Lock:
+  - Place a clearly labeled Celestial Lock near the Moonstone.
+  - Label/signifier: MOONSTONE plus matching moon shape/color.
+  - Moonstone insertion:
+      * Lock turns green
+      * another wall slab moves aside
+      * previously obstructed Blood Sigil becomes visible and reachable
+      * golden Return Rune activates
+  - Remove or disable the old behavior that reveals Moonstone immediately after
+    the Watcher Lock. The first Lock must now reveal the Codex, not Moonstone.
+  - Adapt, rather than duplicate, the existing ritual stage controller so there
+    are still exactly three required Lock completions before winning.
+
+Acceptance criteria:
+  [ ] Moon Crypt is the fifth valid gated location.
+  [ ] Wrong sequences reset reliably and do not release Moonstone.
+  [ ] Wolf -> Moon -> Blood releases Moonstone exactly once.
+  [ ] The slab visibly obstructs Moonstone before puzzle completion.
+  [ ] Moonstone still has mass 0.10 kg and remains grabbable.
+  [ ] Celestial Lock accepts Moonstone and rejects false relics.
+  [ ] Second slab visibly reveals Blood Sigil.
+  [ ] Blood Sigil still has mass 2.00 kg and remains grabbable.
+  [ ] Ritual progress becomes 2/3 after Celestial Lock completion.
+  [ ] Return Rune takes the player back to the hall.
+  [ ] Play Mode console has zero errors.
+
+Rubric evidence created by this Section:
+  - fifth Gated Location
+  - Puzzle System
+  - additional clear Reveal evidence
+  - Puzzle Discoverability
+
+Expected focused commit:
+  build moon crypt button puzzle
+
+Notes:
+  This is the highest-risk Section and must not be combined with Section 7.
+
+
+SECTION 7 - EXPLORATION TRACKING, SCOREBOARD, AND SIGNIFIERS
+============================================================
+
+Status:
+  NOT STARTED
+
+Purpose:
+  Make all progress readable in VR and turn the five chamber mechanics into strong
+  rubric evidence instead of hidden implementation details.
+
+Implementation scope:
+  - Extend the existing in-world task/progress display with:
+
+      RITUAL PROGRESS    N / 3
+      KEYS REMAINING     N
+      LOCKS REMAINING    N
+      CHAMBERS EXPLORED  N / 5
+
+  - Count chamber completion only after its internal interaction, not on arrival.
+  - Update each entrance rune:
+      * dark = locked
+      * purple = available false/unknown passage
+      * blue-white = available Moon-marked passage
+      * green plus EXPLORED = internal interaction completed
+  - Keep current Lock signifiers:
+      * blue = current ritual destination
+      * green/gold = completed
+      * red flash = wrong item or wrong order
+  - Add concise stage instructions for:
+      * take Silver Fang to Watcher Lock
+      * inspect revealed Codex and use Gate runes
+      * find the Moon-marked chamber
+      * press Wolf -> Moon -> Blood
+      * take Moonstone to Celestial Lock
+      * take Blood Sigil to Exit Lock
+  - Preserve the user's manually positioned instruction panels. Modify content or
+    child layout only when necessary; do not call the automatic wall layout menu.
+
+Acceptance criteria:
+  [ ] Board is readable from the intended VR starting position.
+  [ ] Key and Lock counts update correctly through all three stages.
+  [ ] Chamber count advances from 0/5 to 5/5 only on internal interactions.
+  [ ] Entrance rune state matches each chamber state.
+  [ ] Main-path instructions never point at an already completed objective.
+  [ ] Text does not overlap, clip, face backward, or hide behind columns.
+  [ ] Existing presentation shortcuts still work or are deliberately updated.
+  [ ] Play Mode console has zero errors.
+
+Rubric evidence created by this Section:
+  - Progress Scoreboard
+  - Grab, Escape, and Lock Signifiers reinforcement
+  - Puzzle Discoverability reinforcement
+
+Expected focused commit:
+  show five chamber quest progress
+
+Notes:
+  None.
+
+
+SECTION 8 - FULL INTEGRATION, POLISH, RUBRIC EVIDENCE, AND QA
+============================================================
+
+Status:
+  NOT STARTED
+
+Purpose:
+  Validate the entire player journey, polish only what blocks clarity, and produce
+  reliable evidence for the walkthrough video and Individual Contributions text.
+
+Full route to verify:
+  1. Start facing readable task wall.
+  2. Grab Silver Fang.
+  3. Insert Fang into Watcher Lock.
+  4. Watch chest lid reveal Codex and five-Gate instructions.
+  5. Enter and complete Cellar Cache interaction.
+  6. Enter and complete Bone Closet interaction.
+  7. Enter and complete Coffin Vault interaction.
+  8. Enter and complete Portrait Chamber interaction.
+  9. Enter Moon Crypt.
+  10. Demonstrate one wrong button sequence and reset.
+  11. Press Wolf -> Moon -> Blood.
+  12. Watch slab reveal Moonstone.
+  13. Insert Moonstone into Celestial Lock.
+  14. Watch slab reveal Blood Sigil.
+  15. Return to hall.
+  16. Insert Blood Sigil into Exit Lock.
+  17. Verify door opens, lighting changes, celebration plays, and win text fades.
+
+QA scope:
+  - Test reset from every major stage.
+  - Test repeated Gate travel and every Return Rune.
+  - Test false relics against ritual Locks.
+  - Test wrong button order repeatedly.
+  - Test dropping every grabbable object onto the floor.
+  - Confirm the three true Key Props retain exact 20:1 max:min mass ratio.
+  - Confirm there are at least three clear Red Herrings.
+  - Confirm five chamber interactions can each be demonstrated independently.
+  - Confirm no wall, floor, or static furniture accidentally has dynamic Rigidbody.
+  - Validate all related scripts and the scene.
+  - Finish with a clean Play Mode run and zero console errors.
+
+Documentation scope:
+  - Update rubric evidence documentation with exact GameObject paths.
+  - Update contribution summary draft with:
+      * all three Keys and Locks
+      * Reveal obstruction and resulting content
+      * Gate interaction and teleport behavior
+      * all five gated locations and their internal interactions
+      * three Red Herrings
+      * button sequence puzzle and clue
+      * Progress Scoreboard
+      * Win Celebration
+  - Write a compact video shot list matching the full route above.
+
+Acceptance criteria:
+  [ ] Full route completes from reset without editor intervention.
+  [ ] All rubric claims have visible evidence and contribution-summary wording.
+  [ ] No console errors occur during the final run.
+  [ ] Scene validation reports no missing scripts or broken prefab references.
+  [ ] Only relevant files are staged.
+  [ ] Final integration commit is created; push only if explicitly requested.
+
+Expected focused commit:
+  verify full five chamber ritual
+
+Notes:
+  This Section may fix integration defects, but it must not introduce a sixth room,
+  a new major sidequest, or unrelated visual redesign.
+
+
+RUBRIC COVERAGE MATRIX
+======================
+
+Feature                    Primary implementation Section
+-------------------------  ------------------------------
+Reveals                    Section 2, reinforced in Section 6
+Gate Affordance            Section 3
+Five Gated Locations       Sections 4, 5, and 6
+Puzzle System              Section 6
+Puzzle Discoverability     Sections 2, 5, 6, and 7
+Progress Scoreboard        Section 7
+Three Red Herrings         Sections 4 and 5
+Win Celebration            Existing system, regression-tested in Section 8
+
+
+COMPLETION LOG
+==============
+
+Entry format for future chats:
+
+  Date:
+  Section:
+  Result: DONE or IN PROGRESS
+  Summary:
+  Validation:
+  Commit:
+  Push status:
+  Remaining notes:
+
+Entry 001
+  Date: 2026-09-23
+  Section: 0 - planning and tracker
+  Result: DONE
+  Summary: Converted the Five False Chambers proposal into eight bounded build
+           Sections with cross-chat continuation and validation rules.
+  Validation: Plan file reviewed for scope, dependencies, and rubric mapping.
+  Commit: plan five chamber execution sections
+  Push status: not pushed
+  Remaining notes: Begin Section 1 only when explicitly requested.
