@@ -6,6 +6,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace MichaelManorEditor
 {
@@ -63,6 +64,88 @@ namespace MichaelManorEditor
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
             Debug.Log("Enhanced the Silver Fang with a curved blade, gothic guard, grip, and moonstone.");
+        }
+
+        [MenuItem("Tools/Michael Manor/Enhance Silver Fang Pedestal and Finale")]
+        public static void EnhanceSilverFangPedestalAndFinale()
+        {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            GameObject pedestalObject = FindSceneObject(scene, "SilverFang_Pedestal");
+            GameObject socketObject = FindSceneObject(scene, "SilverFangSocket");
+            GameObject doorObject = FindSceneObject(scene, "ExitDoor");
+            if (pedestalObject == null || socketObject == null || doorObject == null)
+            {
+                Debug.LogError("The Silver Fang pedestal, socket, or exit door is missing.");
+                return;
+            }
+
+            Material stone = LoadMaterial("ManorStone");
+            Material gold = LoadMaterial("AntiqueGold");
+            Material blackIron = LoadMaterial("BlackIron");
+            Material moonstone = LoadMaterial("SpectralGlow");
+            Material silver = LoadMaterial("SilverFang");
+            Material outline = AssetDatabase.LoadAssetAtPath<Material>(OutlineMaterialPath);
+
+            Transform model = BuildGothicPedestalModel(
+                pedestalObject.transform,
+                stone,
+                gold,
+                blackIron,
+                moonstone,
+                outline);
+            Transform doorSeal = BuildDoorSeal(doorObject.transform, silver, gold, blackIron, moonstone, outline);
+
+            XRSocketInteractor socket = socketObject.GetComponent<XRSocketInteractor>();
+            Transform insertionAnchor = socketObject.transform.Find("InsertionAnchor");
+            if (insertionAnchor == null)
+            {
+                insertionAnchor = new GameObject("InsertionAnchor").transform;
+                insertionAnchor.SetParent(socketObject.transform, false);
+            }
+
+            insertionAnchor.localPosition = Vector3.zero;
+            insertionAnchor.localRotation = Quaternion.Euler(0f, 0f, -15f);
+            socket.attachTransform = insertionAnchor;
+            socket.socketSnappingRadius = 0.38f;
+
+            Transform feedback = pedestalObject.transform.Find("PedestalSolvedGlow");
+            Light statusLight = pedestalObject.transform.Find("PedestalStatusLight")?.GetComponent<Light>();
+            Renderer[] runes = feedback != null
+                ? feedback.GetComponentsInChildren<Renderer>(true)
+                : model.GetComponentsInChildren<Renderer>(true)
+                    .Where(renderer => renderer.name.StartsWith("SocketRune"))
+                    .ToArray();
+
+            AudioSource audioSource = socketObject.GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                audioSource = socketObject.AddComponent<AudioSource>();
+            }
+
+            audioSource.clip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/click.wav");
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 1f;
+            audioSource.minDistance = 1.5f;
+            audioSource.maxDistance = 14f;
+            audioSource.volume = 0.65f;
+            audioSource.pitch = 0.72f;
+
+            ManorPuzzleSocket puzzle = socketObject.GetComponent<ManorPuzzleSocket>();
+            puzzle.Configure(
+                socket,
+                "SilverFang",
+                doorObject.transform,
+                feedback != null ? feedback.gameObject : null,
+                statusLight,
+                insertionAnchor,
+                doorSeal,
+                runes,
+                audioSource);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("Enhanced the Silver Fang pedestal, insertion sequence, door seal, and finale.");
         }
 
         public static void BuildSilverFangVisual(
@@ -146,6 +229,145 @@ namespace MichaelManorEditor
             attach.SetParent(root, false);
             attach.localPosition = new Vector3(0f, 0.40f, 0f);
             attach.localRotation = Quaternion.Euler(0f, 0f, 180f);
+        }
+
+        public static Transform BuildGothicPedestalModel(
+            Transform pedestal,
+            Material stone,
+            Material gold,
+            Material blackIron,
+            Material moonstone,
+            Material outline = null)
+        {
+            foreach (string legacyName in new[] { "PedestalBase", "PedestalStem", "PedestalTop" })
+            {
+                Transform legacy = pedestal.Find(legacyName);
+                if (legacy != null)
+                {
+                    legacy.gameObject.SetActive(false);
+                }
+            }
+
+            Transform existing = pedestal.Find("GothicPedestalModel");
+            if (existing != null)
+            {
+                existing.gameObject.SetActive(true);
+                return existing;
+            }
+
+            Transform model = new GameObject("GothicPedestalModel").transform;
+            model.SetParent(pedestal, false);
+
+            CreatePart("ObsidianFoot", PrimitiveType.Cylinder, model, new Vector3(0f, 0.16f, 0f),
+                new Vector3(1.25f, 0.16f, 1.25f), blackIron, outline);
+            CreatePart("StoneBase", PrimitiveType.Cylinder, model, new Vector3(0f, 0.38f, 0f),
+                new Vector3(1.02f, 0.11f, 1.02f), stone, outline);
+            CreatePart("GoldBaseBand", PrimitiveType.Cylinder, model, new Vector3(0f, 0.53f, 0f),
+                new Vector3(0.86f, 0.045f, 0.86f), gold, outline);
+            CreatePart("CarvedColumn", PrimitiveType.Cylinder, model, new Vector3(0f, 1.05f, 0f),
+                new Vector3(0.48f, 0.50f, 0.48f), stone, outline);
+            CreatePart("ColumnIronCore", PrimitiveType.Cylinder, model, new Vector3(0f, 1.08f, 0f),
+                new Vector3(0.34f, 0.54f, 0.34f), blackIron, outline);
+            CreatePart("GothicCapital", PrimitiveType.Cylinder, model, new Vector3(0f, 1.60f, 0f),
+                new Vector3(0.76f, 0.12f, 0.76f), stone, outline);
+            CreatePart("RuneBasin", PrimitiveType.Cylinder, model, new Vector3(0f, 1.82f, 0f),
+                new Vector3(0.90f, 0.10f, 0.90f), blackIron, outline);
+            CreatePart("BasinRim", PrimitiveType.Cylinder, model, new Vector3(0f, 1.92f, 0f),
+                new Vector3(0.78f, 0.055f, 0.78f), gold, outline);
+
+            for (int i = 0; i < 8; i++)
+            {
+                float angle = i * Mathf.PI * 2f / 8f;
+                CreatePart(
+                    $"SocketRune_{i + 1:00}",
+                    PrimitiveType.Sphere,
+                    model,
+                    new Vector3(Mathf.Cos(angle) * 0.60f, 2.01f, Mathf.Sin(angle) * 0.60f),
+                    new Vector3(0.09f, 0.045f, 0.09f),
+                    moonstone,
+                    outline);
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = i * Mathf.PI * 0.5f + Mathf.PI * 0.25f;
+                Vector3 position = new Vector3(Mathf.Cos(angle) * 0.72f, 1.76f, Mathf.Sin(angle) * 0.72f);
+                GameObject spire = CreatePart(
+                    $"GothicSpire_{i + 1:00}",
+                    PrimitiveType.Cylinder,
+                    model,
+                    position,
+                    new Vector3(0.075f, 0.32f, 0.075f),
+                    blackIron,
+                    outline);
+                spire.transform.localRotation = Quaternion.Euler(0f, -angle * Mathf.Rad2Deg, 8f);
+                CreatePart(
+                    $"SpireGem_{i + 1:00}",
+                    PrimitiveType.Sphere,
+                    model,
+                    position + Vector3.up * 0.38f,
+                    Vector3.one * 0.095f,
+                    moonstone,
+                    outline);
+            }
+
+            GameObject leftProng = CreatePart("FangCradle_Left", PrimitiveType.Cube, model,
+                new Vector3(-0.18f, 2.05f, 0f), new Vector3(0.07f, 0.32f, 0.10f), gold, outline);
+            leftProng.transform.localRotation = Quaternion.Euler(0f, 0f, -18f);
+            GameObject rightProng = CreatePart("FangCradle_Right", PrimitiveType.Cube, model,
+                new Vector3(0.18f, 2.05f, 0f), new Vector3(0.07f, 0.32f, 0.10f), gold, outline);
+            rightProng.transform.localRotation = Quaternion.Euler(0f, 0f, 18f);
+
+            return model;
+        }
+
+        public static Transform BuildDoorSeal(
+            Transform door,
+            Material silver,
+            Material gold,
+            Material blackIron,
+            Material moonstone,
+            Material outline = null)
+        {
+            Transform existing = door.Find("SilverFangDoorSeal");
+            if (existing != null)
+            {
+                existing.gameObject.SetActive(true);
+                return existing;
+            }
+
+            Transform seal = new GameObject("SilverFangDoorSeal").transform;
+            seal.SetParent(door, false);
+            seal.localPosition = new Vector3(0f, 3.55f, 15.19f);
+
+            GameObject disc = CreatePart("SealDisc", PrimitiveType.Cylinder, seal, Vector3.zero,
+                new Vector3(0.62f, 0.075f, 0.62f), blackIron, outline);
+            disc.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            GameObject innerDisc = CreatePart("SealInnerGold", PrimitiveType.Cylinder, seal, new Vector3(0f, 0f, -0.09f),
+                new Vector3(0.48f, 0.045f, 0.48f), gold, outline);
+            innerDisc.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+
+            GameObject crest = new GameObject("FangCrest");
+            crest.transform.SetParent(seal, false);
+            crest.transform.localPosition = new Vector3(-0.04f, 0.08f, -0.16f);
+            crest.transform.localScale = Vector3.one * 0.72f;
+            crest.AddComponent<MeshFilter>().sharedMesh = EnsureFangMesh();
+            AssignMaterials(crest.AddComponent<MeshRenderer>(), silver, outline);
+
+            for (int i = 0; i < 10; i++)
+            {
+                float angle = i * Mathf.PI * 2f / 10f;
+                CreatePart(
+                    $"SealRune_{i + 1:00}",
+                    PrimitiveType.Sphere,
+                    seal,
+                    new Vector3(Mathf.Cos(angle) * 0.74f, Mathf.Sin(angle) * 0.74f, -0.13f),
+                    Vector3.one * 0.085f,
+                    moonstone,
+                    outline);
+            }
+
+            return seal;
         }
 
         private static void CreateWing(
