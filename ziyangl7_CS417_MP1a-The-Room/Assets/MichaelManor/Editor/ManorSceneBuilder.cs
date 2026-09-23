@@ -887,6 +887,8 @@ namespace MichaelManorEditor
             WinCelebrationController celebration = integrationParent.gameObject.AddComponent<WinCelebrationController>();
             celebration.Configure(celebrationRoot.gameObject, new[] { leftBurst, rightBurst });
             UnityEventTools.AddPersistentListener(puzzleSocket.OnSolved, celebration.TriggerWin);
+            ManorPresentationShortcuts shortcuts = integrationParent.gameObject.AddComponent<ManorPresentationShortcuts>();
+            shortcuts.Configure(puzzleSocket, celebration);
             celebrationRoot.gameObject.SetActive(false);
         }
 

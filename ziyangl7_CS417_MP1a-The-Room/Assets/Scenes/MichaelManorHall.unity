@@ -8741,6 +8741,7 @@ GameObject:
   m_Component:
   - component: {fileID: 287060924}
   - component: {fileID: 287060925}
+  - component: {fileID: 287060926}
   m_Layer: 0
   m_Name: WinFlow
   m_TagString: Untagged
@@ -8781,6 +8782,20 @@ MonoBehaviour:
   - {fileID: 98753793}
   - {fileID: 1230356221}
   victoryAudio: {fileID: 0}
+--- !u!114 &287060926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 287060923}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 097098a3f3dfe450fb34d0384cecd66f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MichaelManor.ManorPresentationShortcuts
+  puzzle: {fileID: 354886534}
+  celebration: {fileID: 287060925}
 --- !u!1 &300389555
 GameObject:
   m_ObjectHideFlags: 0

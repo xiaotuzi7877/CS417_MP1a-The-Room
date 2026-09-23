@@ -148,6 +148,31 @@ namespace MichaelManorEditor
             Debug.Log("Enhanced the Silver Fang pedestal, insertion sequence, door seal, and finale.");
         }
 
+        [MenuItem("Tools/Michael Manor/Install Presentation Shortcuts")]
+        public static void InstallPresentationShortcuts()
+        {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            ManorPuzzleSocket puzzle = Object.FindAnyObjectByType<ManorPuzzleSocket>();
+            WinCelebrationController celebration = Object.FindAnyObjectByType<WinCelebrationController>();
+            if (puzzle == null || celebration == null)
+            {
+                Debug.LogError("Puzzle or Win Celebration controller is missing from MichaelManorHall.");
+                return;
+            }
+
+            ManorPresentationShortcuts shortcuts = celebration.GetComponent<ManorPresentationShortcuts>();
+            if (shortcuts == null)
+            {
+                shortcuts = celebration.gameObject.AddComponent<ManorPresentationShortcuts>();
+            }
+
+            shortcuts.Configure(puzzle, celebration);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("Installed presentation shortcuts: K unlock, W win celebration, R reset.");
+        }
+
         public static void BuildSilverFangVisual(
             Transform root,
             Material silver,

@@ -31,7 +31,14 @@ namespace MichaelManor
         private Vector3 insertionTargetLocalPosition;
         private Vector3 doorSealStartScale;
         private Quaternion doorSealStartRotation;
+        private Color feedbackLightStartColor;
+        private float feedbackLightStartIntensity;
         private Transform acceptedArtifact;
+        private Transform artifactStartParent;
+        private Vector3 artifactStartLocalPosition;
+        private Quaternion artifactStartLocalRotation;
+        private Vector3 artifactStartLocalScale;
+        private bool artifactStartKinematic;
         private bool solved;
         private Coroutine feedbackRoutine;
 
@@ -82,6 +89,14 @@ namespace MichaelManor
                 doorSealStartScale = doorSeal.localScale;
                 doorSealStartRotation = doorSeal.localRotation;
             }
+
+            if (feedbackLight != null)
+            {
+                feedbackLightStartColor = feedbackLight.color;
+                feedbackLightStartIntensity = feedbackLight.intensity;
+            }
+
+            CacheArtifactStartState();
         }
 
         private void OnEnable()
@@ -157,6 +172,54 @@ namespace MichaelManor
             }
 
             feedbackRoutine = StartCoroutine(SolveRoutine());
+        }
+
+        [ContextMenu("Reset Puzzle")]
+        public void ResetPuzzle()
+        {
+            if (feedbackRoutine != null)
+            {
+                StopCoroutine(feedbackRoutine);
+                feedbackRoutine = null;
+            }
+
+            solved = false;
+            if (door != null)
+            {
+                door.localPosition = doorClosedLocalPosition;
+            }
+
+            if (successFeedback != null)
+            {
+                successFeedback.SetActive(false);
+            }
+
+            if (feedbackLight != null)
+            {
+                feedbackLight.color = feedbackLightStartColor;
+                feedbackLight.intensity = feedbackLightStartIntensity;
+            }
+
+            if (insertionAnchor != null)
+            {
+                insertionAnchor.localPosition = insertionTargetLocalPosition;
+            }
+
+            if (doorSeal != null)
+            {
+                doorSeal.gameObject.SetActive(true);
+                doorSeal.localScale = doorSealStartScale;
+                doorSeal.localRotation = doorSealStartRotation;
+            }
+
+            if (unlockAudio != null)
+            {
+                unlockAudio.Stop();
+            }
+
+            RestoreArtifactStartState();
+            SetRuneScale(1f);
+            Debug.Log("Silver Fang presentation reset.");
         }
 
         private IEnumerator SolveRoutine()
@@ -309,6 +372,61 @@ namespace MichaelManor
                 {
                     rune.transform.localScale = Vector3.one * (0.12f * scale);
                 }
+            }
+        }
+
+        private void CacheArtifactStartState()
+        {
+            ManorKeyArtifact[] artifacts = FindObjectsByType<ManorKeyArtifact>(
+                FindObjectsInactive.Exclude,
+                FindObjectsSortMode.None);
+            foreach (ManorKeyArtifact artifact in artifacts)
+            {
+                if (artifact.ArtifactId != requiredArtifactId)
+                {
+                    continue;
+                }
+
+                acceptedArtifact = artifact.transform;
+                artifactStartParent = acceptedArtifact.parent;
+                artifactStartLocalPosition = acceptedArtifact.localPosition;
+                artifactStartLocalRotation = acceptedArtifact.localRotation;
+                artifactStartLocalScale = acceptedArtifact.localScale;
+                Rigidbody body = acceptedArtifact.GetComponent<Rigidbody>();
+                artifactStartKinematic = body != null && body.isKinematic;
+                break;
+            }
+        }
+
+        private void RestoreArtifactStartState()
+        {
+            if (acceptedArtifact == null)
+            {
+                CacheArtifactStartState();
+            }
+
+            if (acceptedArtifact == null)
+            {
+                return;
+            }
+
+            acceptedArtifact.SetParent(artifactStartParent, false);
+            acceptedArtifact.localPosition = artifactStartLocalPosition;
+            acceptedArtifact.localRotation = artifactStartLocalRotation;
+            acceptedArtifact.localScale = artifactStartLocalScale;
+
+            Rigidbody body = acceptedArtifact.GetComponent<Rigidbody>();
+            if (body != null)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+                body.isKinematic = artifactStartKinematic;
+            }
+
+            XRGrabInteractable grab = acceptedArtifact.GetComponent<XRGrabInteractable>();
+            if (grab != null)
+            {
+                grab.enabled = true;
             }
         }
 
