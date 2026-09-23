@@ -12,7 +12,7 @@ https://ziyangl7.itch.io/mp1a-the-room
 
 ## Features
 
-- 15 × 15 × 15 enclosed 3D room
+- Enclosed medieval manor hall with a raised ceiling and a central celestial orrery
 - Realtime point lighting with color switching
 - Multiple wall materials with textures, normal maps, and tiling
 - World Space controls canvas
@@ -20,8 +20,8 @@ https://ziyangl7.itch.io/mp1a-the-room
 - Custom outline vertex shader
 - Comet using kinematic double integration
 - Object spawning system
-- Particle burst feedback
-- Spatialized 3D sound
+- 18 particle systems, including four distributed action-feedback banks
+- 16 spatialized 3D audio generators distributed through the hall
 - Projectile motion with Trail Renderer
 - Arbitrary gravitational attractor
 - Stable orbital motion using calculated tangential velocity
@@ -55,12 +55,14 @@ Keyboard controls are included as testing fallbacks. The project also contains O
 
 ## Particle Feedback
 
-The project includes multiple particle feedback effects:
+The main scene includes four banks of distributed particle and spatial-audio feedback:
 
-- `SpawnBurst` — triggered when an object is spawned
-- `LightBurst` — triggered when the room lighting changes
-- `BreakOutBurst` — triggered when leaving the room
-- `ReturnBurst` — triggered when returning to the room
+- `Spawn` — triggered when an object is spawned
+- `Light` — triggered when the room lighting changes
+- `BreakOut` — triggered when leaving the room
+- `Return` — triggered when returning to the room
+
+Each bank contains four emitters and four 3D audio sources placed at different locations in the room. The original local spawn and light bursts remain as additional feedback.
 
 ## Orbital Motion
 
@@ -87,6 +89,13 @@ This produces stable orbital motion around the Planet.
 Assets/
 ├── Audio/
 ├── Materials/
+├── MichaelManor/
+│   ├── Editor/
+│   ├── Materials/
+│   ├── Prefabs/
+│   ├── Scripts/
+│   ├── Textures/
+│   └── ThirdParty/
 ├── Prefabs/
 ├── Scenes/
 ├── Scripts/
@@ -98,8 +107,14 @@ Assets/
 Main scene:
 
 ```text
-Assets/Scenes/SampleScene.unity
+Assets/Scenes/MichaelManorHall.unity
 ```
+
+`MichaelManorHall` is build index 0. `SampleScene` is retained as the earlier MP1a reference scene.
+
+## Grading Demo
+
+See [`RUBRIC_EVIDENCE.md`](RUBRIC_EVIDENCE.md) for a short recording order and the exact scene objects that provide evidence for each implemented requirement.
 
 ## Built With
 
