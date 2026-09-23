@@ -41,6 +41,9 @@ https://ziyangl7.itch.io/mp1a-the-room
 | `L` | Change room lighting |
 | `B` | Break out / return to room |
 | `P` | Spawn orbital object |
+| `K` | Demonstrate the complete three-lock ritual |
+| `W` | Replay the win celebration |
+| `R` | Reset the ritual and win presentation |
 
 ### VR Controller Mappings
 
@@ -52,6 +55,16 @@ https://ziyangl7.itch.io/mp1a-the-room
 | Right Trigger | Spawn object |
 
 Keyboard controls are included as testing fallbacks. The project also contains OpenXR controller bindings for Oculus Touch controllers.
+
+## MP1b Escape-Room Progression
+
+`MichaelManorHall` now contains a strict three-lock supernatural ritual:
+
+1. Take the Silver Fang from its display table and place it in the Watcher lock. The wall portrait rises and reveals the Moonstone.
+2. Return the Moonstone to the celestial console below the orrery. The orrery responds and the table reliquary opens, revealing the Blood Sigil.
+3. Carry the Blood Sigil to the final door pedestal. The seal retracts, the exit opens, and the Win Celebration plays.
+
+An in-world board reports ritual progress, hidden keys, unsolved locks, and the total number of ritual clues. The locks reject the wrong artifact and cannot be solved out of order.
 
 ## Particle Feedback
 
