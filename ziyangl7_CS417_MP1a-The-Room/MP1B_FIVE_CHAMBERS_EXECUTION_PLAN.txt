@@ -103,7 +103,7 @@ STATUS SUMMARY
 ==============
 
   [DONE]        Section 0 - planning and tracker
-  [NOT STARTED] Section 1 - shared quest, chamber, and gate foundation
+  [DONE]        Section 1 - shared quest, chamber, and gate foundation
   [NOT STARTED] Section 2 - Watcher Lock chest Reveal and Midnight Codex
   [NOT STARTED] Section 3 - five hall Gates, teleport travel, and Return Runes
   [NOT STARTED] Section 4 - Cellar Cache and Bone Closet
@@ -135,7 +135,7 @@ SECTION 1 - SHARED QUEST, CHAMBER, AND GATE FOUNDATION
 ======================================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Purpose:
   Build the reusable code foundation before creating rooms or changing the main
@@ -176,18 +176,20 @@ Implementation scope:
   - Do not create actual teleport destinations yet; that belongs to Section 3.
 
 Acceptance criteria:
-  [ ] All new scripts compile with zero errors and zero warnings.
-  [ ] Controller can report locked state and explored count 0/5.
-  [ ] A test chamber interaction can register once but not twice.
-  [ ] Existing three-stage ritual still completes in Play Mode.
-  [ ] Existing instruction panel position is unchanged.
-  [ ] Scene validation reports no missing scripts or broken prefabs.
+  [x] All new scripts compile with zero errors and zero warnings.
+  [x] Controller can report locked state and explored count 0/5.
+  [x] A test chamber interaction can register once but not twice.
+  [x] Existing three-stage ritual still completes in Play Mode.
+  [x] Existing instruction panel position is unchanged.
+  [x] Scene validation reports no missing scripts or broken prefabs.
 
 Expected focused commit:
   build five chamber quest foundation
 
 Notes:
-  None.
+  Installed five reusable Gate state holders, five one-shot chamber state holders,
+  and empty location roots only. Travel, rooms, and finished visuals remain scoped
+  to later Sections. ControlsCanvas_WorldSpace remained at (-2, 2.65, -15.3).
 
 
 SECTION 2 - WATCHER LOCK CHEST REVEAL AND MIDNIGHT CODEX
@@ -666,3 +668,19 @@ Entry 001
   Commit: plan five chamber execution sections
   Push status: not pushed
   Remaining notes: Begin Section 1 only when explicitly requested.
+
+Entry 002
+  Date: 2026-09-23
+  Section: 1 - shared quest, chamber, and gate foundation
+  Result: DONE
+  Summary: Added the shared five-chamber controller, reusable Gate state component,
+           one-shot chamber interaction relay, stable hierarchy, installer, and a
+           repeatable Play Mode foundation test.
+  Validation: Four new scripts passed with zero warnings/errors; foundation test
+              passed locked 0/5, duplicate rejection, shared unlock, explicit Gate
+              activation, and reset; existing ritual completed 1/3 through 3/3;
+              scene validation found zero issues; console ended with zero errors.
+  Commit: build five chamber quest foundation
+  Push status: not pushed
+  Remaining notes: Section 2 should connect Watcher Lock 1 to the physical chest
+                   Reveal, Codex, map, and Gate availability.
