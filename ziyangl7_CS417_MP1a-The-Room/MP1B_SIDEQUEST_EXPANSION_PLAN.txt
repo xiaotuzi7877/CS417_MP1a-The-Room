@@ -101,7 +101,7 @@ SECTION 13 - THREE KEY-RELEASE PUZZLES AND PUZZLE SCOREBOARD
 ============================================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Scope:
   - Add a BAT -> WOLF -> MOON portrait sequence that releases Silver Fang.
@@ -109,6 +109,13 @@ Scope:
   - Add a LEFT -> RIGHT lever sequence after the Celestial Lock that releases
     Blood Sigil instead of making it immediately reachable.
   - Add PUZZLES SOLVED N / 3 and CLUES FOUND N / 3 to the in-world board.
+
+Acceptance:
+  [x] BAT -> WOLF -> MOON releases the physically sealed Silver Fang.
+  [x] WOLF -> MOON -> BLOOD remains the Moonstone release puzzle.
+  [x] LEFT -> RIGHT is locked until ritual stage 2, then releases Blood Sigil.
+  [x] Three clue plaques are explicit interactions and both counters reach 3 / 3.
+  [x] Dedicated test, full 17-step ritual QA, and scene validation pass.
 
 Expected commit:
   build three key release puzzles
