@@ -170,6 +170,15 @@ namespace MichaelManorEditor
 
                 changed += Place(label, new Vector3(center.x, height, center.z) + front * (half + Standoff), front);
                 Transform back = label.Find("ExploredLabelBack");
+
+                // A panel mounted flat against a wall has no readable back; drop the copy there.
+                bool flushToWall = Physics.RaycastAll(center, -front, half + 0.35f)
+                    .Any(hit => !hit.collider.transform.IsChildOf(gate.transform) && !hit.collider.isTrigger);
+                if (flushToWall)
+                {
+                    if (back != null) { Object.DestroyImmediate(back.gameObject); changed++; }
+                    continue;
+                }
                 if (back == null)
                 {
                     back = Object.Instantiate(label.gameObject, label).transform;

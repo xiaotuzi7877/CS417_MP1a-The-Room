@@ -91,6 +91,14 @@ namespace MichaelManorEditor
             label.rectTransform.sizeDelta = new Vector2(4.2f, 1.1f);
             label.enableWordWrapping = false;
 
+            // The floor ends at the doorway. Once the exit door lifts, this invisible wall keeps the
+            // player's body in the hall (no falling into the void) while the head still reaches
+            // the portal's trigger volume, which extends past it.
+            var backstop = new GameObject("PortalBackstop");
+            backstop.transform.SetParent(root, false);
+            backstop.transform.localPosition = new Vector3(0f, 2.75f, 0.75f);
+            backstop.AddComponent<BoxCollider>().size = new Vector3(4.4f, 5.5f, 0.2f);
+
             ManorScenePortal portal = root.gameObject.AddComponent<ManorScenePortal>();
             WinCelebrationController celebration = Object.FindFirstObjectByType<WinCelebrationController>(FindObjectsInactive.Include);
             portal.Configure(ritual, celebration, MinhScenePath, swirl, glowRenderers.ToArray(), light, label);
