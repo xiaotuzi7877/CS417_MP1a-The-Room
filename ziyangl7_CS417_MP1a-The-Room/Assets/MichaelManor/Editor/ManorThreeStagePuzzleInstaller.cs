@@ -261,7 +261,7 @@ namespace MichaelManorEditor
             return new SocketBuildResult { Socket = socket, StatusLight = light };
         }
 
-        private static void ApplyEntryMissionWallLayout(Scene scene)
+        internal static void ApplyEntryMissionWallLayout(Scene scene)
         {
             GameObject rig = FindSceneObject(scene, "XR Origin (XR Rig)");
             GameObject controls = FindSceneObject(scene, "ControlsCanvas_WorldSpace");
@@ -320,8 +320,8 @@ namespace MichaelManorEditor
             TextMeshPro progress = board.Find("ProgressText")?.GetComponent<TextMeshPro>();
             if (progress != null)
             {
-                progress.transform.localPosition = new Vector3(0f, 0.20f, 0.08f);
-                progress.rectTransform.sizeDelta = new Vector2(2.95f, 0.98f);
+                progress.transform.localPosition = new Vector3(0f, 0.30f, 0.08f);
+                progress.rectTransform.sizeDelta = new Vector2(2.95f, 0.72f);
                 progress.fontSize = 1.15f;
                 progress.fontStyle = FontStyles.Bold;
                 progress.alignment = TextAlignmentOptions.Center;
@@ -336,8 +336,8 @@ namespace MichaelManorEditor
             {
                 clue.text =
                     "STEP I\nTAKE THE SILVER FANG FROM THE TABLE - PLACE IT IN THE GLOWING WATCHER LOCK";
-                clue.transform.localPosition = new Vector3(0f, -0.58f, 0.08f);
-                clue.rectTransform.sizeDelta = new Vector2(2.95f, 0.52f);
+                clue.transform.localPosition = new Vector3(0f, -0.34f, 0.08f);
+                clue.rectTransform.sizeDelta = new Vector2(2.95f, 0.36f);
                 clue.fontSize = 0.72f;
                 clue.fontStyle = FontStyles.Bold;
                 clue.alignment = TextAlignmentOptions.Center;
@@ -347,6 +347,24 @@ namespace MichaelManorEditor
                 clue.fontSizeMin = 0.48f;
                 clue.fontSizeMax = 0.72f;
             }
+
+            TextMeshPro counter = board.Find("PuzzleAndClueCounter")?.GetComponent<TextMeshPro>();
+            if (counter != null)
+            {
+                counter.text = "PUZZLES  0 / 3     CLUES  0 / 3";
+                counter.transform.localPosition = new Vector3(0f, -0.78f, 0.081f);
+                counter.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                counter.rectTransform.sizeDelta = new Vector2(2.95f, 0.24f);
+                counter.fontSize = 0.38f;
+                counter.fontStyle = FontStyles.Bold;
+                counter.alignment = TextAlignmentOptions.Center;
+                counter.enableWordWrapping = false;
+                counter.enableAutoSizing = true;
+                counter.fontSizeMin = 0.25f;
+                counter.fontSizeMax = 0.38f;
+            }
+
+            ManorTextOrientationFixer.Apply();
         }
 
         private static void SetLocalTransform(Transform target, Vector3 position, Vector3 scale)

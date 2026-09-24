@@ -66,9 +66,14 @@ namespace MichaelManorEditor
             if (tracker == null) tracker = trackerObject.AddComponent<ManorPuzzleProgressTracker>();
             Transform boardParent = ritual.ProgressText.transform.parent;
             Transform oldBoard = boardParent.Find("PuzzleAndClueCounter"); if (oldBoard != null) Object.DestroyImmediate(oldBoard.gameObject);
-            TextMeshPro board = Text("PuzzleAndClueCounter", boardParent, ritual.ProgressText.transform.position + new Vector3(0f, -1.72f, 0f),
-                "PUZZLES SOLVED  0 / 3\nCLUES FOUND     0 / 3", new Color(1f, 0.76f, 0.30f), 0.48f);
-            board.transform.localRotation = ritual.ProgressText.transform.localRotation;
+            TextMeshPro board = Text("PuzzleAndClueCounter", boardParent, ritual.ProgressText.transform.position,
+                "PUZZLES  0 / 3     CLUES  0 / 3", new Color(1f, 0.76f, 0.30f), 0.38f);
+            board.transform.localPosition = new Vector3(0f, -0.78f, 0.081f);
+            board.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            board.rectTransform.sizeDelta = new Vector2(2.95f, 0.24f);
+            board.enableAutoSizing = true;
+            board.fontSizeMin = 0.25f;
+            board.fontSizeMax = 0.38f;
             tracker.Configure(first, moon, third, ritual, board);
 
             string[] clueNames = { "Clue_01_Watcher", "Clue_02_Heavens", "Clue_03_Exit" };

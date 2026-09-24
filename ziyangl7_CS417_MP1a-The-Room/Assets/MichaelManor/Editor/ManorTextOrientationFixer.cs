@@ -32,6 +32,9 @@ namespace MichaelManorEditor
             int changed = 0;
 
             // Wall/board-mounted texts: readable face toward where the player stands.
+            changed += Face(Find("RitualProgressBoard", "ProgressText"), Vector3.forward);
+            changed += Face(Find("RitualProgressBoard", "CurrentClueText"), Vector3.forward);
+            changed += Face(Find("RitualProgressBoard", "PuzzleAndClueCounter"), Vector3.forward);
             foreach (string name in new[] { "Label_BAT", "Label_WOLF", "Label_MOON", "PortraitSequenceStatus" })
                 changed += Face(Find("SilverFangReleasePuzzle", name), Vector3.back);          // player stands at -Z of the case
             changed += Face(Find("VR_Restart_Control", "Restart_Label"), Vector3.forward);      // player stands at +Z of the plate
