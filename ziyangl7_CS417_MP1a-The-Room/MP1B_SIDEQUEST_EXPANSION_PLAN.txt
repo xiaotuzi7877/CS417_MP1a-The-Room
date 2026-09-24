@@ -36,12 +36,18 @@ SECTION 10 - WORLD SPACE RESTART BUTTON
 =======================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Scope:
   - Add a readable HOLD TO RESTART control near the mission wall.
   - Require deliberate hold/select interaction to prevent accidental resets.
   - Reset ritual, chambers, gates, Moon Crypt, artifacts, door, and celebration.
+
+Acceptance:
+  [x] Physical world-space control is an XRSimpleInteractable with a collider.
+  [x] A two-second hold and visible progress prevent accidental restart.
+  [x] Play Mode reset restores ritual stage, Gate availability, and exploration.
+  [x] Scene validation reports no missing scripts or broken references.
 
 Expected commit:
   add vr ritual restart control
