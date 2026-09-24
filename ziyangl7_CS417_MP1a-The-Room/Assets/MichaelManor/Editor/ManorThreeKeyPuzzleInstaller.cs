@@ -4,6 +4,7 @@ using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
@@ -27,8 +28,7 @@ namespace MichaelManorEditor
 
             Transform oldHall = decor.Find("SilverFangReleasePuzzle"); if (oldHall != null) Object.DestroyImmediate(oldHall.gameObject);
             Transform hallRoot = Group("SilverFangReleasePuzzle", decor);
-            Transform fangBarrier = Part("SilverFang_DisplayCase_Shutter", PrimitiveType.Cube, hallRoot,
-                fang.transform.position + new Vector3(0f, 0.15f, -0.62f), new Vector3(1.55f, 1.65f, 0.18f), Mat("BlackIron"), true, true);
+            Transform fangBarrier = BuildFangDisplayCase(hallRoot, fang.transform, GetOrCreateGlassMaterial(), Mat("BlackIron"));
             TextMeshPro hallStatus = Text("PortraitSequenceStatus", hallRoot, fang.transform.position + new Vector3(0f, 1.55f, -0.72f),
                 "BAT  ->  WOLF  ->  MOON\nSEQUENCE  0 / 3", new Color(0.75f, 0.88f, 1f), 0.42f);
             ManorKeyReleasePuzzle first = hallRoot.gameObject.AddComponent<ManorKeyReleasePuzzle>();
@@ -187,6 +187,72 @@ namespace MichaelManorEditor
             Debug.Log("VR PLAYTEST SECTIONS 1-3 FIXED: mission wall layout, Fang labels, and button feedback lights.");
         }
 
+        [MenuItem("Tools/Michael Manor/Install Transparent Silver Fang Case")]
+        public static void InstallTransparentSilverFangCase()
+        {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            Transform hallRoot = Find(scene, "SilverFangReleasePuzzle");
+            ManorKeyArtifact fang = Artifact("SilverFang");
+            ManorKeyReleasePuzzle puzzle = hallRoot != null ? hallRoot.GetComponent<ManorKeyReleasePuzzle>() : null;
+            if (hallRoot == null || fang == null || puzzle == null)
+            {
+                Debug.LogError("Transparent Fang case install stopped: puzzle root, Silver Fang, or release puzzle is missing.");
+                return;
+            }
+
+            foreach (string oldName in new[] { "SilverFang_DisplayCase", "SilverFang_DisplayCase_Shutter" })
+            {
+                Transform old = hallRoot.Find(oldName);
+                if (old != null) Object.DestroyImmediate(old.gameObject);
+            }
+
+            Transform displayCase = BuildFangDisplayCase(hallRoot, fang.transform, GetOrCreateGlassMaterial(), Mat("BlackIron"));
+            SerializedObject serializedPuzzle = new SerializedObject(puzzle);
+            serializedPuzzle.FindProperty("barrier").objectReferenceValue = displayCase;
+            serializedPuzzle.FindProperty("openLocalPosition").vector3Value = displayCase.localPosition + new Vector3(0f, 2.2f, 0f);
+            serializedPuzzle.ApplyModifiedPropertiesWithoutUndo();
+
+            EditorUtility.SetDirty(puzzle);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("VR PLAYTEST SECTION 4 FIXED: transparent six-sided Fang case installed and wired to the release puzzle.");
+        }
+
+        [MenuItem("Tools/Michael Manor/Validate Transparent Silver Fang Case")]
+        public static void ValidateTransparentSilverFangCase()
+        {
+            Transform displayCase = GameObject.Find("SilverFang_DisplayCase")?.transform;
+            ManorKeyArtifact fang = Artifact("SilverFang");
+            ManorKeyReleasePuzzle puzzle = GameObject.Find("SilverFangReleasePuzzle")?.GetComponent<ManorKeyReleasePuzzle>();
+            string[] panels = { "GlassFront", "GlassBack", "GlassLeft", "GlassRight", "GlassTop", "GlassBottom" };
+            bool valid = displayCase != null && fang != null && puzzle != null && puzzle.Barrier == displayCase;
+            valid &= valid && panels.All(name =>
+            {
+                Transform panel = displayCase.Find(name);
+                Renderer renderer = panel != null ? panel.GetComponent<Renderer>() : null;
+                return panel != null && panel.GetComponent<BoxCollider>() != null && renderer != null &&
+                       renderer.sharedMaterial != null && renderer.sharedMaterial.color.a < 0.5f;
+            });
+
+            if (valid)
+            {
+                Bounds fangBounds = CombinedBounds(fang.transform);
+                Renderer front = displayCase.Find("GlassFront").GetComponent<Renderer>();
+                Renderer back = displayCase.Find("GlassBack").GetComponent<Renderer>();
+                Renderer left = displayCase.Find("GlassLeft").GetComponent<Renderer>();
+                Renderer right = displayCase.Find("GlassRight").GetComponent<Renderer>();
+                Renderer top = displayCase.Find("GlassTop").GetComponent<Renderer>();
+                Renderer bottom = displayCase.Find("GlassBottom").GetComponent<Renderer>();
+                valid &= left.bounds.max.x <= fangBounds.min.x && right.bounds.min.x >= fangBounds.max.x &&
+                         bottom.bounds.max.y <= fangBounds.min.y && top.bounds.min.y >= fangBounds.max.y &&
+                         front.bounds.max.z <= fangBounds.min.z && back.bounds.min.z >= fangBounds.max.z;
+            }
+
+            if (valid) Debug.Log("TRANSPARENT FANG CASE PASS: six transparent collider panels fully enclose the artifact and move as one barrier.");
+            else Debug.LogError("Transparent Fang case validation failed.");
+        }
+
         [MenuItem("Tools/Michael Manor/Test Three Key Release Puzzles (Play Mode)")]
         public static void TestInPlayMode()
         {
@@ -195,6 +261,7 @@ namespace MichaelManorEditor
             ManorKeyReleasePuzzle third = Object.FindObjectsByType<ManorKeyReleasePuzzle>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(p => p != first);
             ManorMoonCryptPuzzle moon = Object.FindFirstObjectByType<ManorMoonCryptPuzzle>(FindObjectsInactive.Include);
             ManorPuzzleProgressTracker tracker = Object.FindFirstObjectByType<ManorPuzzleProgressTracker>(FindObjectsInactive.Include);
+            ManorKeyArtifact fangArtifact = Artifact("SilverFang");
             ManorClueDiscovery[] clues = Object.FindObjectsByType<ManorClueDiscovery>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             ManorKeyReleaseButton[] fangButtons = first != null
                 ? first.GetComponentsInChildren<ManorKeyReleaseButton>(true).OrderBy(button => button.name).ToArray()
@@ -203,6 +270,8 @@ namespace MichaelManorEditor
                          fangButtons.Length == 3 && fangButtons.All(button => button.FeedbackLight != null);
             if (valid)
             {
+                XRGrabInteractable fangGrab = fangArtifact != null ? fangArtifact.GetComponent<XRGrabInteractable>() : null;
+                valid &= fangGrab != null && !fangGrab.enabled;
                 valid &= !fangButtons[1].PressForTest() && first.SequencePosition == 0 &&
                          fangButtons[1].FeedbackLight.intensity > 0f &&
                          fangButtons[1].FeedbackLight.color.r > fangButtons[1].FeedbackLight.color.b;
@@ -212,6 +281,7 @@ namespace MichaelManorEditor
                          fangButtons[0].FeedbackLight.color.b > fangButtons[0].FeedbackLight.color.r;
                 first.ResetPuzzle();
                 first.SolveForTest(); moon.PressButton(0); moon.PressButton(1); moon.PressButton(2);
+                valid &= fangGrab.enabled;
                 valid &= !third.Press(0); third.ForceSolveForTest();
                 foreach (ManorClueDiscovery clue in clues) valid &= clue.DiscoverForTest();
                 tracker.RecalculateForTest();
@@ -239,6 +309,87 @@ namespace MichaelManorEditor
             light.range = 1.2f;
             light.intensity = 0f;
             light.shadows = LightShadows.None;
+        }
+
+        private static Transform BuildFangDisplayCase(Transform parent, Transform fang, Material glass, Material frame)
+        {
+            Bounds bounds = CombinedBounds(fang);
+            float width = Mathf.Max(1.70f, bounds.size.x + 0.46f);
+            float height = Mathf.Max(1.20f, bounds.size.y + 0.46f);
+            float depth = Mathf.Max(1.00f, bounds.size.z + 0.46f);
+            const float glassThickness = 0.055f;
+
+            Transform root = Group("SilverFang_DisplayCase", parent);
+            root.position = bounds.center;
+            LocalPart("GlassFront", root, new Vector3(0f, 0f, -depth * 0.5f), new Vector3(width, height, glassThickness), glass);
+            LocalPart("GlassBack", root, new Vector3(0f, 0f, depth * 0.5f), new Vector3(width, height, glassThickness), glass);
+            LocalPart("GlassLeft", root, new Vector3(-width * 0.5f, 0f, 0f), new Vector3(glassThickness, height, depth), glass);
+            LocalPart("GlassRight", root, new Vector3(width * 0.5f, 0f, 0f), new Vector3(glassThickness, height, depth), glass);
+            LocalPart("GlassTop", root, new Vector3(0f, height * 0.5f, 0f), new Vector3(width, glassThickness, depth), glass);
+            LocalPart("GlassBottom", root, new Vector3(0f, -height * 0.5f, 0f), new Vector3(width, glassThickness, depth), glass);
+
+            float rail = 0.045f;
+            float frontZ = -depth * 0.5f - glassThickness;
+            LocalPart("FrameTop", root, new Vector3(0f, height * 0.5f, frontZ), new Vector3(width + rail, rail, rail), frame, false);
+            LocalPart("FrameBottom", root, new Vector3(0f, -height * 0.5f, frontZ), new Vector3(width + rail, rail, rail), frame, false);
+            LocalPart("FrameLeft", root, new Vector3(-width * 0.5f, 0f, frontZ), new Vector3(rail, height, rail), frame, false);
+            LocalPart("FrameRight", root, new Vector3(width * 0.5f, 0f, frontZ), new Vector3(rail, height, rail), frame, false);
+            return root;
+        }
+
+        private static Transform LocalPart(string name, Transform parent, Vector3 localPosition, Vector3 localScale, Material material, bool collider = true)
+        {
+            GameObject part = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            part.name = name;
+            part.transform.SetParent(parent, false);
+            part.transform.localPosition = localPosition;
+            part.transform.localScale = localScale;
+            Renderer renderer = part.GetComponent<Renderer>();
+            renderer.sharedMaterial = material;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            if (!collider) Object.DestroyImmediate(part.GetComponent<Collider>());
+            return part.transform;
+        }
+
+        private static Bounds CombinedBounds(Transform root)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+            Bounds result = new Bounds(root.position, Vector3.zero);
+            bool initialized = false;
+            foreach (Renderer renderer in renderers)
+            {
+                if (!initialized) { result = renderer.bounds; initialized = true; }
+                else result.Encapsulate(renderer.bounds);
+            }
+            return result;
+        }
+
+        private static Material GetOrCreateGlassMaterial()
+        {
+            const string path = "Assets/MichaelManor/Materials/RitualGlass.mat";
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+                material = new Material(shader) { name = "RitualGlass" };
+                AssetDatabase.CreateAsset(material, path);
+            }
+            Color tint = new Color(0.22f, 0.72f, 0.88f, 0.22f);
+            material.SetColor("_BaseColor", tint);
+            material.SetColor("_Color", tint);
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.SetFloat("_Smoothness", 0.88f);
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.DisableKeyword("_SURFACE_TYPE_OPAQUE");
+            material.renderQueue = (int)RenderQueue.Transparent;
+            EditorUtility.SetDirty(material);
+            return material;
         }
         private static Material Mat(string name) => AssetDatabase.LoadAssetAtPath<Material>("Assets/MichaelManor/Materials/" + name + ".mat");
         private static Transform Find(Scene scene, string name) => scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true)).FirstOrDefault(t => t.name == name);
