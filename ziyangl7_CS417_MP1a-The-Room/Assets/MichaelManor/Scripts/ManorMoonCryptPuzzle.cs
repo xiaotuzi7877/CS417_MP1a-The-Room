@@ -151,6 +151,10 @@ namespace MichaelManor
         {
             if (stageIndex >= 1 && !IsSolved)
                 ForceSolvedState();
+            if (statusText != null && stageIndex >= 1)
+                statusText.text = stageIndex == 1
+                    ? "MOONSTONE PLACED - TAKE THE BLOOD SIGIL TO THE EXIT LOCK"
+                    : "THE RITUAL IS COMPLETE";
             if (stageIndex == 1 && moonstoneReturnRune != null)
                 moonstoneReturnRune.SetActive(true);
         }

@@ -80,7 +80,30 @@ namespace MichaelManorEditor
             Check(blood.gameObject.activeInHierarchy, "Blood Sigil not revealed");
             Check(Vector3.Distance(bloodSlab.localPosition, bloodClosed) > 1f, "blood slab did not move");
             Check(rune.gameObject.activeSelf, "Return Rune not active after Celestial Lock");
+            Vector3 bloodHome = blood.transform.parent.position;
+            await Wait(3f);
+            Check(ritual.CurrentStage == 2, "Exit Lock completed without the player placing the Blood Sigil");
+            Check(Vector3.Distance(blood.transform.position, bloodHome) < 1.5f, "Blood Sigil left its Moon Crypt plinth after reveal");
             Check(rune.TryReturn(), "Return Rune TryReturn failed");
+
+            // Regression: after the Blood Sigil has sat in the Exit Lock once, a reset and replay
+            // must not let that socket snap the freshly revealed Sigil from the Moon Crypt.
+            ritual.SolveCurrentStageForPresentation();
+            await Until(() => ritual.IsComplete, 8f);
+            Check(ritual.IsComplete, "Exit Lock did not complete in the regression setup");
+            ritual.ResetPuzzle();
+            await Wait(2f);
+            Check(ritual.CurrentStage == 0, "reset re-inserted a Key Prop into its Lock (stage advanced by itself)");
+            ritual.SolveCurrentStageForPresentation();
+            await Until(() => ritual.CurrentStage == 1, 6f);
+            buttons[0].Press(); buttons[1].Press(); buttons[2].Press();
+            await Wait(1.8f);
+            ritual.SolveCurrentStageForPresentation();
+            await Until(() => ritual.CurrentStage == 2, 6f);
+            await Wait(3f);
+            Check(ritual.CurrentStage == 2, "replay: Exit Lock snapped the Blood Sigil remotely");
+            Check(Vector3.Distance(blood.transform.position, bloodHome) < 1.5f, "replay: Blood Sigil left the Moon Crypt");
+            ritual.ResetPuzzle();
         }
 
         private static bool Check(bool ok, string message) { if (!ok) failures.Add(message); return ok; }

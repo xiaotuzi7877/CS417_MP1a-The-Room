@@ -510,6 +510,12 @@ Notes:
   z -0.75) so its slide path no longer clips VaultLeft or MoonPillarLeft.
   False-relic rejection relies on the existing ArtifactId check; no false relic
   shares an id with any Lock.
+  Game-view recording review (2026-09-24) found and fixed: the 1.42 m button
+  console hid the revealed Blood Sigil (lowered to 1.0 m); status text kept
+  pointing at the Celestial Lock after it was solved; Moon Crypt Return Rune was
+  not gold; and ResetPuzzle let an interpolated Key Prop snap back into its Lock,
+  which silently completed Locks after a reset. Reset now teleports the Rigidbody
+  pose and ritual sockets ignore artifacts farther than 1 m.
 
 
 SECTION 7 - EXPLORATION TRACKING, SCOREBOARD, AND SIGNIFIERS
@@ -773,3 +779,22 @@ Entry 007
   Push status: not pushed
   Remaining notes: Continue at Section 7 - exploration tracking, scoreboard, and
                    signifiers.
+
+Entry 008
+  Date: 2026-09-24
+  Section: 6 - Moon Crypt, three-button puzzle, and second Lock (follow-up fix)
+  Result: DONE
+  Summary: Game-view recording review exposed four Section 6 defects: Blood Sigil
+           hidden behind the button console, stale status text, non-gold Return
+           Rune, and a reset bug where an interpolated Key Prop snapped back into
+           its socket and auto-completed Locks. All four fixed; added a reusable
+           Play Mode Game-view recorder (Tools -> Michael Manor -> Record Moon
+           Crypt Playthrough).
+  Validation: Moon Crypt self test PASS with zero errors, now including a full
+              3/3 -> reset -> replay regression; three consecutive recorded runs
+              kept exact stage timing (Lock 1 at ~5 s, Lock 2 at ~24 s, stays 2/3);
+              recording frames confirm red flash, blue progress, slab reveal,
+              visible Moonstone and Blood Sigil, gold Return Rune, hall 2/3.
+  Commit: fix moon crypt reveal and ritual reset
+  Push status: not pushed
+  Remaining notes: Continue at Section 7.

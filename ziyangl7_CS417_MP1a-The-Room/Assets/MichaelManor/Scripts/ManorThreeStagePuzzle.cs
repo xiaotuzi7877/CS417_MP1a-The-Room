@@ -3,6 +3,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -144,6 +145,20 @@ namespace MichaelManor
             }
         }
 
+        // XRI sockets can keep a stale trigger contact for an artifact that was disabled
+        // inside them; on reactivation the socket would snap it back from any distance.
+        private const float SocketReachDistance = 1.0f;
+        private readonly XRHoverFilterDelegate nearbyHoverFilter =
+            new XRHoverFilterDelegate((interactor, interactable) => IsNearSocket(interactor.transform, interactable.transform));
+        private readonly XRSelectFilterDelegate nearbySelectFilter =
+            new XRSelectFilterDelegate((interactor, interactable) => IsNearSocket(interactor.transform, interactable.transform));
+
+        private static bool IsNearSocket(Transform socket, Transform artifact)
+        {
+            return socket != null && artifact != null &&
+                   Vector3.Distance(socket.position, artifact.position) <= SocketReachDistance;
+        }
+
         private void OnEnable()
         {
             if (sockets == null)
@@ -156,6 +171,8 @@ namespace MichaelManor
                 if (socket != null)
                 {
                     socket.selectEntered.AddListener(HandleSelectEntered);
+                    socket.hoverFilters.Add(nearbyHoverFilter);
+                    socket.selectFilters.Add(nearbySelectFilter);
                 }
             }
         }
@@ -172,6 +189,8 @@ namespace MichaelManor
                 if (socket != null)
                 {
                     socket.selectEntered.RemoveListener(HandleSelectEntered);
+                    socket.hoverFilters.Remove(nearbyHoverFilter);
+                    socket.selectFilters.Remove(nearbySelectFilter);
                 }
             }
         }
@@ -241,8 +260,11 @@ namespace MichaelManor
 
             if (body != null)
             {
-                body.linearVelocity = Vector3.zero;
-                body.angularVelocity = Vector3.zero;
+                if (!body.isKinematic)
+                {
+                    body.linearVelocity = Vector3.zero;
+                    body.angularVelocity = Vector3.zero;
+                }
                 body.isKinematic = true;
             }
 
@@ -333,8 +355,11 @@ namespace MichaelManor
             Rigidbody body = artifact.GetComponent<Rigidbody>();
             if (body != null)
             {
-                body.linearVelocity = Vector3.zero;
-                body.angularVelocity = Vector3.zero;
+                if (!body.isKinematic)
+                {
+                    body.linearVelocity = Vector3.zero;
+                    body.angularVelocity = Vector3.zero;
+                }
                 body.isKinematic = true;
             }
 
@@ -608,17 +633,25 @@ namespace MichaelManor
                     artifact.transform.localRotation = artifactStartLocalRotations[i];
                     artifact.transform.localScale = artifactStartLocalScales[i];
                     artifact.gameObject.SetActive(i == 0);
-                    if (grab != null)
-                    {
-                        grab.enabled = true;
-                    }
 
+                    // Interpolated bodies would otherwise pull the transform back into the
+                    // socket next frame, where the socket re-selects it and fakes a Lock.
                     Rigidbody body = artifact.GetComponent<Rigidbody>();
                     if (body != null)
                     {
-                        body.linearVelocity = Vector3.zero;
-                        body.angularVelocity = Vector3.zero;
                         body.isKinematic = artifactStartKinematic[i];
+                        body.position = artifact.transform.position;
+                        body.rotation = artifact.transform.rotation;
+                        if (!body.isKinematic)
+                        {
+                            body.linearVelocity = Vector3.zero;
+                            body.angularVelocity = Vector3.zero;
+                        }
+                    }
+
+                    if (grab != null)
+                    {
+                        grab.enabled = true;
                     }
                 }
 

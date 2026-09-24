@@ -52,6 +52,7 @@ namespace MichaelManorEditor
             Material moon = Mat("CelestialMoon");
             Material glow = Mat("SpectralGlow");
             Material blood = Mat("BloodVelvet");
+            if (gold != null) returnRune.GetComponent<Renderer>().sharedMaterial = gold;
 
             PointLight("MoonCrypt_Light", content, new Vector3(0f, 3.7f, 0.8f),
                 new Color(0.34f, 0.54f, 1f), 135f, 7f);
@@ -63,7 +64,7 @@ namespace MichaelManorEditor
 
             Text("SequenceInstruction", content, new Vector3(0f, 3.45f, 4.73f), new Vector2(5.8f, 1.25f),
                 1.75f, "PRESS IN ORDER:\n1. WOLF     2. MOON     3. BLOOD", new Color(0.66f, 0.88f, 1f));
-            TextMeshPro status = Text("SequenceStatus", content, new Vector3(0f, 2.55f, 4.71f),
+            TextMeshPro status = Text("SequenceStatus", content, new Vector3(0f, 2.85f, 4.71f),
                 new Vector2(4.6f, 0.60f), 1.20f, "SEQUENCE  0 / 3", new Color(1f, 0.72f, 0.25f));
 
             Transform vault = Group("MoonstoneVault", content);
@@ -110,13 +111,13 @@ namespace MichaelManorEditor
             Renderer[] renderers = new Renderer[3];
             Light[] lights = new Light[3];
             string[] labels = { "WOLF", "MOON", "BLOOD" };
-            Part("ButtonConsole", PrimitiveType.Cube, content, new Vector3(0f, 0.71f, 0.30f),
-                new Vector3(4.4f, 1.42f, 0.12f), wood, true);
+            Part("ButtonConsole", PrimitiveType.Cube, content, new Vector3(0f, 0.50f, 0.30f),
+                new Vector3(4.4f, 1.00f, 0.12f), wood, true);
             for (int i = 0; i < 3; i++)
             {
                 float x = -1.55f + i * 1.55f;
                 Transform button = Part($"Button_{i + 1}_{labels[i]}", PrimitiveType.Cylinder, content,
-                    new Vector3(x, 1.05f, 0.15f), new Vector3(0.46f, 0.18f, 0.46f), glow, true);
+                    new Vector3(x, 0.72f, 0.15f), new Vector3(0.46f, 0.18f, 0.46f), glow, true);
                 button.localRotation = Quaternion.Euler(90f, 0f, 0f);
                 button.gameObject.AddComponent<XRSimpleInteractable>();
                 ManorMoonSequenceButton sequenceButton = button.gameObject.AddComponent<ManorMoonSequenceButton>();
@@ -127,7 +128,7 @@ namespace MichaelManorEditor
                 lights[i] = lightObject.AddComponent<Light>();
                 lights[i].type = LightType.Point;
                 lights[i].range = 1.8f;
-                Text($"Label_{labels[i]}", content, new Vector3(x, 1.68f, 0.15f), new Vector2(1.45f, 0.40f),
+                Text($"Label_{labels[i]}", content, new Vector3(x, 1.24f, 0.15f), new Vector2(1.45f, 0.40f),
                     1.05f, labels[i], i == 2 ? new Color(1f, 0.28f, 0.22f) : new Color(0.64f, 0.86f, 1f));
             }
 
