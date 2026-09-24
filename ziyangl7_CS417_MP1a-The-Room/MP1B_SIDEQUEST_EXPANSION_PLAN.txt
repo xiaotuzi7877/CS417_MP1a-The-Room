@@ -166,11 +166,16 @@ SECTION 16 - GRABBABLE BLACKLIGHT REVEAL
 ========================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Scope:
   - Add a grabbable Blacklight prop with a visible beam direction.
   - Make a second hidden message appear only when the Blacklight points at it.
+
+Acceptance:
+  [x] Blacklight has Rigidbody, Collider, XRGrabInteractable, visible UV tube, and spot beam.
+  [x] Hidden writing fragment shader reads the Blacklight's live position and direction.
+  [x] Forward-beam visibility passes while the same point behind the lamp remains hidden.
 
 Expected commit:
   add directional blacklight clue
