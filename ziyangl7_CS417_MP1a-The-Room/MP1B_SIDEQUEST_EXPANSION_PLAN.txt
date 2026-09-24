@@ -79,13 +79,19 @@ SECTION 12 - MOON SHARD COLLECTIBLES
 ====================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Scope:
   - Place eight unique Moon Shards across the hall and five chambers.
   - Collect each once through an explicit VR interaction.
   - Display MOON SHARDS N / 8 in the world-space progress display.
   - Restore all shards on Restart without gating the main escape route.
+
+Acceptance:
+  [x] Eight physical XRSimpleInteractable shards exist across six locations.
+  [x] Each shard counts once and the world board displays N / 8.
+  [x] Collecting all shards does not advance or gate the main ritual.
+  [x] Restart restores all eight; Play Mode and scene validation pass.
 
 Expected commit:
   add moon shard collectibles
