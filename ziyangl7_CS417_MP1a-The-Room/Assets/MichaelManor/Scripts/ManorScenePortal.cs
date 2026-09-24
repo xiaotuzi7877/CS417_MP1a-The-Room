@@ -14,6 +14,10 @@ namespace MichaelManor
     {
         [SerializeField] private ManorThreeStagePuzzle ritual;
         [SerializeField] private WinCelebrationController celebration;
+        // The next room is whichever scene follows this one in Build Settings (Start, Ken, Michael,
+        // Minh). Unity keeps that list correct when a scene is renamed or moved, so the teammate's
+        // room can be reorganised without touching this portal. The path is only a fallback for
+        // when this room is last in the list.
         [SerializeField] private string nextScenePath = "Assets/Scenes/SampleScene.unity";
         [SerializeField] private Vector3 triggerSize = new Vector3(3.2f, 3.4f, 1.6f);
         [SerializeField] private Transform swirl;
@@ -29,6 +33,20 @@ namespace MichaelManor
         public bool IsOpen => ritual != null && ritual.IsComplete && (celebration == null || celebration.HasWon);
         public bool IsLoading => loading;
         public string NextScenePath => nextScenePath;
+
+        /// Build index to load, or -1 to fall back to nextScenePath.
+        public int NextBuildIndex
+        {
+            get
+            {
+                int next = SceneManager.GetActiveScene().buildIndex + 1;
+                return next > 0 && next < SceneManager.sceneCountInBuildSettings ? next : -1;
+            }
+        }
+
+        public string NextSceneDescription => NextBuildIndex >= 0
+            ? SceneUtility.GetScenePathByBuildIndex(NextBuildIndex)
+            : nextScenePath;
         public event Action<ManorScenePortal> Leaving;
 
         public void Configure(ManorThreeStagePuzzle ritualController, WinCelebrationController winCelebration,
@@ -74,17 +92,17 @@ namespace MichaelManor
         public bool TryEnter()
         {
             if (!IsOpen || loading) return false;
-            if (!Application.CanStreamedLevelBeLoaded(nextScenePath))
+            if (NextBuildIndex < 0 && !Application.CanStreamedLevelBeLoaded(nextScenePath))
             {
                 if (label != null) label.text = "THE NEXT ROOM IS NOT IN THE BUILD";
-                Debug.LogError("ManorScenePortal cannot load scene: " + nextScenePath, this);
+                Debug.LogError("ManorScenePortal: no scene after this room in Build Settings and cannot load " + nextScenePath, this);
                 return false;
             }
 
             loading = true;
             int carried = ManorHeldItemCarrier.CaptureHeldItems();
             if (label != null) label.text = "ENTERING MINH'S ROOM...";
-            Debug.Log($"Michael Manor portal: loading {nextScenePath} carrying {carried} held item(s).");
+            Debug.Log($"Michael Manor portal: loading {NextSceneDescription} carrying {carried} held item(s).");
             Leaving?.Invoke(this);
             StartCoroutine(Load());
             return true;
@@ -93,7 +111,10 @@ namespace MichaelManor
         private IEnumerator Load()
         {
             yield return null;
-            AsyncOperation operation = SceneManager.LoadSceneAsync(nextScenePath, LoadSceneMode.Single);
+            int index = NextBuildIndex;
+            AsyncOperation operation = index >= 0
+                ? SceneManager.LoadSceneAsync(index, LoadSceneMode.Single)
+                : SceneManager.LoadSceneAsync(nextScenePath, LoadSceneMode.Single);
             if (operation == null) { loading = false; yield break; }
         }
 

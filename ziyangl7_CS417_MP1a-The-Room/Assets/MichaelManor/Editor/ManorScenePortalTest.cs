@@ -30,6 +30,8 @@ namespace MichaelManorEditor
             var portal = Object.FindFirstObjectByType<ManorScenePortal>();
             if (ritual == null || portal == null) return "ritual or portal missing (run Install Minh Room Portal)";
             string startScene = SceneManager.GetActiveScene().path;
+            string expectedScene = portal.NextSceneDescription;    // the scene after this one in Build Settings
+            if (portal.NextBuildIndex < 0) return "no scene follows this room in Build Settings";
 
             ManorPlaythroughRecorder.Begin("minh_portal", 8f);
             ritual.ResetPuzzle();
@@ -70,7 +72,7 @@ namespace MichaelManorEditor
             ManorPlaythroughRecorder.Look(new Vector3(0f, float.NaN, 15.3f), new Vector3(0f, 2f, 17f));
             end = Time.realtimeSinceStartup + 15f;
             while (SceneManager.GetActiveScene().path == startScene && Time.realtimeSinceStartup < end) await Wait(0.2f);
-            if (SceneManager.GetActiveScene().path != portal_NextScene) return "walking into the portal did not load " + portal_NextScene;
+            if (SceneManager.GetActiveScene().path != expectedScene) return "walking into the portal did not load " + expectedScene;
             await Wait(1.5f);
 
             GameObject leftCopy = GameObject.Find(leftName), rightCopy = GameObject.Find(rightName);
@@ -100,8 +102,6 @@ namespace MichaelManorEditor
                 if ((t.name == "Left Controller" || t.name == "Right Controller") && t.gameObject.scene.isLoaded)
                     t.gameObject.SetActive(true);
         }
-
-        private static string portal_NextScene = "Assets/Scenes/SampleScene.unity";
 
         private static XRBaseInputInteractor Hand(InteractorHandedness handedness) =>
             Object.FindObjectsByType<XRBaseInputInteractor>(FindObjectsSortMode.None)
