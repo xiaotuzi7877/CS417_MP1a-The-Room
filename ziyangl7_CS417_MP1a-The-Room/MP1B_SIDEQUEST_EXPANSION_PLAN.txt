@@ -57,13 +57,19 @@ SECTION 11 - MOON CRYPT LOSS TIMER
 ==================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Scope:
   - Start a visible 2:30 timer when the Moon Crypt Gate is used.
   - Stop it after the Moonstone sequence is solved or the player leaves.
   - On expiry, show a clear loss message, reset only Moon Crypt, and return the
     player to the hall so the challenge can be retried.
+
+Acceptance:
+  [x] Gate use starts a visible 02:30 countdown inside Moon Crypt.
+  [x] Solve and Return Rune paths stop the timer.
+  [x] Expiry shows THE MOON HAS SET, resets only Moon Crypt, and returns safely.
+  [x] Play Mode loss/retry test and scene validation pass.
 
 Expected commit:
   add moon crypt loss timer

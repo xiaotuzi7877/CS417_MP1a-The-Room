@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -14,6 +15,7 @@ namespace MichaelManor
 
         public Transform HallReturnAnchor => hallReturnAnchor;
         public int ChamberIndex => chamberIndex;
+        public event Action<ManorReturnRune> ReturnRequested;
 
         public void Configure(ManorGateTravelSystem system, Transform returnAnchor, int index)
         {
@@ -46,7 +48,9 @@ namespace MichaelManor
 
         public bool TryReturn()
         {
-            return travelSystem != null && travelSystem.TravelTo(hallReturnAnchor);
+            bool returned = travelSystem != null && travelSystem.TravelTo(hallReturnAnchor);
+            if (returned) ReturnRequested?.Invoke(this);
+            return returned;
         }
 
         private void HandleSelected(SelectEnterEventArgs args)
