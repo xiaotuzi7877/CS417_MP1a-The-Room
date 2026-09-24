@@ -109,7 +109,7 @@ STATUS SUMMARY
   [DONE]        Section 4 - Cellar Cache and Bone Closet
   [DONE]        Section 5 - Coffin Vault and Portrait Chamber
   [DONE]        Section 6 - Moon Crypt, three-button puzzle, and second Lock
-  [NOT STARTED] Section 7 - exploration tracking, scoreboard, and signifiers
+  [DONE]        Section 7 - exploration tracking, scoreboard, and signifiers
   [NOT STARTED] Section 8 - full integration, polish, rubric evidence, and QA
 
 
@@ -522,7 +522,7 @@ SECTION 7 - EXPLORATION TRACKING, SCOREBOARD, AND SIGNIFIERS
 ============================================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Purpose:
   Make all progress readable in VR and turn the five chamber mechanics into strong
@@ -557,14 +557,14 @@ Implementation scope:
     child layout only when necessary; do not call the automatic wall layout menu.
 
 Acceptance criteria:
-  [ ] Board is readable from the intended VR starting position.
-  [ ] Key and Lock counts update correctly through all three stages.
-  [ ] Chamber count advances from 0/5 to 5/5 only on internal interactions.
-  [ ] Entrance rune state matches each chamber state.
-  [ ] Main-path instructions never point at an already completed objective.
-  [ ] Text does not overlap, clip, face backward, or hide behind columns.
-  [ ] Existing presentation shortcuts still work or are deliberately updated.
-  [ ] Play Mode console has zero errors.
+  [x] Board is readable from the intended VR starting position.
+  [x] Key and Lock counts update correctly through all three stages.
+  [x] Chamber count advances from 0/5 to 5/5 only on internal interactions.
+  [x] Entrance rune state matches each chamber state.
+  [x] Main-path instructions never point at an already completed objective.
+  [x] Text does not overlap, clip, face backward, or hide behind columns.
+  [x] Existing presentation shortcuts still work or are deliberately updated.
+  [x] Play Mode console has zero errors.
 
 Rubric evidence created by this Section:
   - Progress Scoreboard
@@ -575,7 +575,14 @@ Expected focused commit:
   show five chamber quest progress
 
 Notes:
-  None.
+  ManorQuestScoreboard (on the ritual object) recomputes the board from ritual,
+  quest, Gate, and Moon Crypt state every frame, so legacy ritual text writes can
+  never leave it stale. Objectives: Silver Fang -> Codex/Gate rune -> Moon-marked
+  chamber -> Wolf/Moon/Blood -> Moonstone -> Blood Sigil -> complete.
+  Explored rune green changed to (0.1, 1, 0.15): the old mint bloomed to nearly
+  the Moon Gate's blue-white. The three clue plaques were mirrored (text faced the
+  wall) and now face the hall. Celestial Lock label raised above the orrery ring.
+  Only text content/format and new EXPLORED child labels changed; no panel moved.
 
 
 SECTION 8 - FULL INTEGRATION, POLISH, RUBRIC EVIDENCE, AND QA
@@ -798,3 +805,21 @@ Entry 008
   Commit: fix moon crypt reveal and ritual reset
   Push status: not pushed
   Remaining notes: Continue at Section 7.
+
+Entry 009
+  Date: 2026-09-24
+  Section: 7 - exploration tracking, scoreboard, and signifiers
+  Result: DONE
+  Summary: Hall board now shows RITUAL PROGRESS, KEYS REMAINING, LOCKS REMAINING,
+           and CHAMBERS EXPLORED plus a seven-step objective line; Gates show
+           dark/purple/blue-white/green runes and an EXPLORED label; clue plaques
+           read correctly; installer and Play Mode self test added.
+  Validation: Quest progress self test PASS (0 errors): counts correct at every
+              step, arrival never counts, each interaction counts once 0/5 -> 5/5,
+              rune colors and labels match state, objective never names a finished
+              step, reset clears labels, presentation solve-all ends at 3/3. Moon
+              Crypt self test still PASS. Scene validation clean. Game-view
+              recordings (tmp/Recordings/section07.gif, section06.gif) reviewed.
+  Commit: show five chamber quest progress
+  Push status: not pushed
+  Remaining notes: Continue at Section 8 - full integration, polish, and QA.

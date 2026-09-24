@@ -89,7 +89,7 @@ namespace MichaelManorEditor
             celestialLock.SetParent(content, false);
             celestialLock.localPosition = new Vector3(-2.25f, 0f, -0.25f);
             celestialLock.localRotation = Quaternion.identity;
-            Text("CelestialLockLabel", celestialLock, new Vector3(0f, 2.15f, 0f), new Vector2(2.3f, 0.75f),
+            Text("CelestialLockLabel", celestialLock, new Vector3(0f, 2.6f, 0f), new Vector2(2.3f, 0.75f),
                 1.25f, "CELESTIAL LOCK\nMOONSTONE", new Color(0.55f, 0.86f, 1f));
 
             Transform bloodVault = Group("BloodSigilVault", content);

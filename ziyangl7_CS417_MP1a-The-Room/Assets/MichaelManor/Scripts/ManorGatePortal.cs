@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -19,7 +20,8 @@ namespace MichaelManor
         [SerializeField] private Color lockedColor = new Color(0.08f, 0.06f, 0.10f, 1f);
         [SerializeField] private Color availableColor = new Color(0.62f, 0.18f, 1f, 1f);
         [SerializeField] private Color moonAvailableColor = new Color(0.48f, 0.86f, 1f, 1f);
-        [SerializeField] private Color exploredColor = new Color(0.24f, 1f, 0.48f, 1f);
+        [SerializeField] private Color exploredColor = new Color(0.1f, 1f, 0.15f, 1f);
+        [SerializeField] private TMP_Text exploredLabel;
         [SerializeField] private UnityEvent onActivationRequested = new UnityEvent();
 
         private bool unlocked;
@@ -33,6 +35,7 @@ namespace MichaelManor
         public bool IsExplored => explored;
         public Transform Destination => destination;
         public Transform ReturnAnchor => returnAnchor;
+        public TMP_Text ExploredLabel => exploredLabel;
         public UnityEvent OnActivationRequested => onActivationRequested;
 
         public void Configure(
@@ -54,6 +57,12 @@ namespace MichaelManor
         {
             destination = travelDestination;
             returnAnchor = hallReturnAnchor;
+        }
+
+        public void SetExploredLabel(TMP_Text label)
+        {
+            exploredLabel = label;
+            RefreshVisuals();
         }
 
         public void SetUnlocked(bool value)
@@ -98,6 +107,11 @@ namespace MichaelManor
 
         private void RefreshVisuals()
         {
+            if (exploredLabel != null)
+            {
+                exploredLabel.gameObject.SetActive(explored);
+            }
+
             if (runeRenderers == null)
             {
                 return;

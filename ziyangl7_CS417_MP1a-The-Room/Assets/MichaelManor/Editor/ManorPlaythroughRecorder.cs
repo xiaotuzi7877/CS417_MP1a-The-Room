@@ -93,6 +93,58 @@ namespace MichaelManorEditor
             Debug.Log($"RECORDING DONE section06 frames={End()}");
         }
 
+        [MenuItem("Tools/Michael Manor/Record Quest Progress Playthrough (Play Mode)")]
+        public static async void RecordQuestProgress()
+        {
+            if (Begin("section07") == null) return;
+            try
+            {
+                var ritual = Object.FindFirstObjectByType<ManorThreeStagePuzzle>();
+                var gates = Object.FindObjectsByType<ManorGatePortal>(FindObjectsSortMode.None).OrderBy(g => g.ChamberIndex).ToArray();
+                var reveals = Object.FindObjectsByType<ManorChamberReveal>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                var runes = Object.FindObjectsByType<ManorReturnRune>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                var buttons = Object.FindObjectsByType<ManorMoonSequenceButton>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                    .OrderBy(b => b.SequenceIndex).ToArray();
+                float n = float.NaN;
+                Vector3 start = new Vector3(0f, n, -12.5f), board = new Vector3(1.55f, 2.8f, -15.2f);
+                Vector3 hallView = new Vector3(0f, n, -9.5f), northGates = new Vector3(0f, 1.8f, 4f);
+
+                ritual.ResetPuzzle(); await Wait(0.8f);
+                Look(start, board); await Wait(3f);                                   // readable board at start pose
+                Look(hallView, northGates); await Wait(2f);                           // dark, locked runes
+                Look(new Vector3(-6.2f, n, -9.3f), new Vector3(-8.05f, 1.8f, -9.3f)); await Wait(0.8f);
+                ritual.SolveCurrentStageForPresentation(); await Wait(3.5f);
+                Look(start, board); await Wait(2.5f);                                 // 1/3 and Codex objective
+                Look(hallView, northGates); await Wait(2.5f);                         // purple + blue-white runes
+                for (int i = 0; i < 4; i++)
+                {
+                    gates[i].TryRequestActivation(); await Wait(1f);
+                    reveals.First(r => ChamberIndexOf(r.transform) == i).TryActivate(); await Wait(2.2f);
+                    runes.First(r => r.ChamberIndex == i).TryReturn(); await Wait(0.3f);
+                }
+                Look(hallView, northGates); await Wait(2.5f);                         // four green + EXPLORED
+                Look(new Vector3(-6.4f, n, -3.2f), new Vector3(-7.85f, 1.9f, -1f)); await Wait(2f);
+                Look(start, board); await Wait(2.5f);                                 // 4 / 5
+                gates[4].TryRequestActivation(); await Wait(1.5f);
+                buttons[0].Press(); await Wait(0.8f); buttons[1].Press(); await Wait(0.8f); buttons[2].Press(); await Wait(2.5f);
+                ritual.SolveCurrentStageForPresentation(); await Wait(2.5f);
+                runes.First(r => r.ChamberIndex == 4).TryReturn(); await Wait(0.3f);
+                Look(start, board); await Wait(3f);                                   // 2/3, 5/5, Blood Sigil objective
+                Look(new Vector3(5.8f, n, -9f), new Vector3(7.85f, 2.1f, -5.5f)); await Wait(2f);
+                Look(new Vector3(0f, n, 4f), new Vector3(0f, 2f, 10.6f)); await Wait(0.5f);
+                ritual.SolveCurrentStageForPresentation(); await Wait(4f);
+                Look(start, board); await Wait(3f);                                   // 3/3 complete
+            }
+            catch (System.Exception e) { Debug.LogError("Quest progress recording failed: " + e.Message); }
+            Debug.Log($"RECORDING DONE section07 frames={End()}");
+        }
+
+        private static int ChamberIndexOf(Transform item)
+        {
+            while (item != null && !item.name.StartsWith("Chamber_")) item = item.parent;
+            return item != null ? int.Parse(item.name.Substring(8, 2)) - 1 : -1;
+        }
+
         private static System.Threading.Tasks.Task Wait(float seconds) =>
             System.Threading.Tasks.Task.Delay((int)(seconds * 1000));
 
