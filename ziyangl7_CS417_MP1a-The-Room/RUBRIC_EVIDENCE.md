@@ -47,6 +47,11 @@ Perform every step manually in VR. `K` (solve all), `W` (replay win), and `R` (r
 | Puzzle system | Three genuine Key-release puzzles: `Decor/SilverFangReleasePuzzle` BAT-WOLF-MOON; `GatedLocations/Chamber_05_MoonCrypt/Content_Section06` WOLF-MOON-BLOOD; `BloodSigilVault/BloodSigilLeverPuzzle` LEFT-RIGHT after ritual stage 2. Wrong order resets; each correct sequence moves a physical seal and releases one Key |
 | Puzzle discoverability | Codex ("FOLLOW THE MOON"), five-passage map, Portrait Chamber moon clue, blue-white Moon Gate rune, `SequenceInstruction` wall text, and the board's current objective |
 | Three Red Herrings | `RustyKey_RedHerring` (Cellar), `WoodenFang_RedHerring` (Bone Closet), `BlackRose_RedHerring` (Coffin Vault); grabbable, rejected by every ritual Lock |
+| Thirteen Red Herrings | The original three plus ten uniquely named relics under each chamber's `InspectionRedHerrings`; every item has Rigidbody, Collider, XRGrabInteractable, unique model silhouette, and `FALSE RELIC` label |
+| Invisible Writing | `Decor/InvisibleWritingInspection/AngleHiddenWriting` uses the custom `MichaelManor/AngleRevealText` fragment shader; frontal view is transparent and an oblique view reveals the clue |
+| Blacklight | `Decor/BlacklightInspection/GrabbableBlacklight` drives live shader position/direction globals; `BlacklightHiddenMessage` appears only inside its UV spotlight cone |
+| Handmirror | `Decor/HandmirrorInspection/GrabbableHandmirror`: XR-grabbable prop, child `MirrorCamera`, 512x512 RenderTexture, and negative horizontal texture scale for left/right reversal |
+| Magnifying Glass | `Decor/MagnifyingGlassInspection/GrabbableMagnifyingGlass`: XR-grabbable prop, child camera and 512x512 lens RenderTexture; 22-degree FOV visibly magnifies the scene |
 | Progress Scoreboard | `Puzzle/RitualSequence/CluesAndProgress/RitualProgressBoard` driven by `ManorQuestScoreboard`: ritual progress, keys remaining, locks remaining, chambers explored, current objective |
 | Puzzle and clue scoreboard | `Systems/PuzzleProgressTracker` plus `PuzzleAndClueCounter`: `PUZZLES SOLVED N / 3` and `CLUES FOUND N / 3`; all three clue plaques are explicit XR interactions |
 | Optional collectibles | Eight one-shot XR Moon Shards across the hall and five chambers, tracked as `MOON SHARDS N / 8`; resettable and independent of escape |

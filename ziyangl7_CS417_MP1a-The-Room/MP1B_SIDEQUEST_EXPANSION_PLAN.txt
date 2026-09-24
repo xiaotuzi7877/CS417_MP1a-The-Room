@@ -204,11 +204,16 @@ SECTION 18 - MAGNIFYING GLASS
 =============================
 
 Status:
-  NOT STARTED
+  DONE
 
 Scope:
   - Add a grabbable magnifying glass with a dedicated Camera/RenderTexture.
   - Use a narrower field of view so the lens visibly magnifies its subject.
+
+Acceptance:
+  [x] Magnifying glass is a Rigidbody + Collider + XRGrabInteractable prop.
+  [x] Dedicated Camera renders to its own 512x512 lens RenderTexture.
+  [x] Lens uses a 22-degree field of view and dedicated Play Mode test passes.
 
 Expected commit:
   add vr magnifying glass
