@@ -40,6 +40,7 @@ namespace MichaelManorEditor
                 Transform button = Part("PortraitRune_" + signs[i], PrimitiveType.Cylinder, hallRoot, pos, new Vector3(0.26f, 0.10f, 0.26f), Mat("CelestialMoon"), true, true);
                 button.rotation = Quaternion.Euler(90f, 0f, 0f); button.gameObject.AddComponent<XRSimpleInteractable>();
                 button.gameObject.AddComponent<ManorKeyReleaseButton>().Configure(first, i);
+                AddFeedbackLight(button, new Color(0.20f, 0.88f, 1f));
                 Text("Label_" + signs[i], hallRoot, pos + new Vector3(0f, 0.42f, 0f), signs[i], Color.white, 0.26f);
             }
 
@@ -131,6 +132,61 @@ namespace MichaelManorEditor
             Debug.Log("Silver Fang now rests flat on a flat display top.");
         }
 
+        [MenuItem("Tools/Michael Manor/Fix VR Playtest Sections 1-3")]
+        public static void FixVrPlaytestSectionsOneToThree()
+        {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            ManorThreeStagePuzzleInstaller.ApplyEntryMissionWallLayout(scene);
+
+            Transform hallRoot = Find(scene, "SilverFangReleasePuzzle");
+            if (hallRoot == null)
+            {
+                Debug.LogError("VR playtest fix stopped: SilverFangReleasePuzzle was not found.");
+                return;
+            }
+
+            string[] signs = { "BAT", "WOLF", "MOON" };
+            foreach (string sign in signs)
+            {
+                Transform button = hallRoot.Find("PortraitRune_" + sign);
+                Transform label = hallRoot.Find("Label_" + sign);
+                if (button == null || label == null) continue;
+
+                label.position = button.position + Vector3.up * 0.42f;
+                TextMeshPro text = label.GetComponent<TextMeshPro>();
+                if (text != null)
+                {
+                    text.rectTransform.sizeDelta = new Vector2(0.95f, 0.30f);
+                    text.enableWordWrapping = false;
+                    text.alignment = TextAlignmentOptions.Center;
+                    EditorUtility.SetDirty(text);
+                }
+
+                Light light = button.GetComponentInChildren<Light>(true);
+                if (light == null)
+                {
+                    AddFeedbackLight(button, new Color(0.20f, 0.88f, 1f));
+                    light = button.GetComponentInChildren<Light>(true);
+                }
+                if (light != null)
+                {
+                    light.type = LightType.Point;
+                    light.range = 1.2f;
+                    light.intensity = 0f;
+                    light.shadows = LightShadows.None;
+                    EditorUtility.SetDirty(light);
+                }
+                EditorUtility.SetDirty(button);
+                EditorUtility.SetDirty(label);
+            }
+
+            ManorTextOrientationFixer.Apply();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("VR PLAYTEST SECTIONS 1-3 FIXED: mission wall layout, Fang labels, and button feedback lights.");
+        }
+
         [MenuItem("Tools/Michael Manor/Test Three Key Release Puzzles (Play Mode)")]
         public static void TestInPlayMode()
         {
@@ -140,10 +196,21 @@ namespace MichaelManorEditor
             ManorMoonCryptPuzzle moon = Object.FindFirstObjectByType<ManorMoonCryptPuzzle>(FindObjectsInactive.Include);
             ManorPuzzleProgressTracker tracker = Object.FindFirstObjectByType<ManorPuzzleProgressTracker>(FindObjectsInactive.Include);
             ManorClueDiscovery[] clues = Object.FindObjectsByType<ManorClueDiscovery>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            bool valid = first != null && third != null && moon != null && tracker != null && clues.Length == 3;
+            ManorKeyReleaseButton[] fangButtons = first != null
+                ? first.GetComponentsInChildren<ManorKeyReleaseButton>(true).OrderBy(button => button.name).ToArray()
+                : new ManorKeyReleaseButton[0];
+            bool valid = first != null && third != null && moon != null && tracker != null && clues.Length == 3 &&
+                         fangButtons.Length == 3 && fangButtons.All(button => button.FeedbackLight != null);
             if (valid)
             {
-                valid &= !first.Press(1) && first.SequencePosition == 0;
+                valid &= !fangButtons[1].PressForTest() && first.SequencePosition == 0 &&
+                         fangButtons[1].FeedbackLight.intensity > 0f &&
+                         fangButtons[1].FeedbackLight.color.r > fangButtons[1].FeedbackLight.color.b;
+                first.ResetPuzzle();
+                valid &= fangButtons[0].PressForTest() && first.SequencePosition == 1 &&
+                         fangButtons[0].FeedbackLight.intensity > 0f &&
+                         fangButtons[0].FeedbackLight.color.b > fangButtons[0].FeedbackLight.color.r;
+                first.ResetPuzzle();
                 first.SolveForTest(); moon.PressButton(0); moon.PressButton(1); moon.PressButton(2);
                 valid &= !third.Press(0); third.ForceSolveForTest();
                 foreach (ManorClueDiscovery clue in clues) valid &= clue.DiscoverForTest();
@@ -152,7 +219,7 @@ namespace MichaelManorEditor
                 Object.FindFirstObjectByType<ManorThreeStagePuzzle>(FindObjectsInactive.Include).ResetPuzzle();
                 tracker.RecalculateForTest(); valid &= tracker.PuzzlesSolved == 0 && tracker.CluesFound == 0;
             }
-            if (valid) Debug.Log("THREE KEY RELEASE PUZZLES PASS: wrong-order rejection, three releases, 3/3 clues, scoreboard, and reset verified.");
+            if (valid) Debug.Log("THREE KEY RELEASE PUZZLES PASS: press animation feedback, wrong-order rejection, three releases, 3/3 clues, scoreboard, and reset verified.");
             else Debug.LogError("Three Key Release Puzzle test failed.");
         }
 
@@ -161,6 +228,18 @@ namespace MichaelManorEditor
         { GameObject g = GameObject.CreatePrimitive(type); g.name = name; g.transform.SetParent(parent, worldPosition); g.transform.position = world; g.transform.localScale = scale; if (material != null) g.GetComponent<Renderer>().sharedMaterial = material; if (!collider) Object.DestroyImmediate(g.GetComponent<Collider>()); return g.transform; }
         private static TextMeshPro Text(string name, Transform parent, Vector3 world, string value, Color color, float size)
         { GameObject g = new GameObject(name); g.transform.SetParent(parent, true); g.transform.position = world; g.transform.rotation = Quaternion.Euler(0f, 180f, 0f); TextMeshPro t = g.AddComponent<TextMeshPro>(); t.text = value; t.fontSize = size; t.fontStyle = FontStyles.Bold; t.alignment = TextAlignmentOptions.Center; t.color = color; t.rectTransform.sizeDelta = new Vector2(4.5f, 1.2f); return t; }
+        private static void AddFeedbackLight(Transform button, Color color)
+        {
+            GameObject lightObject = new GameObject("FeedbackLight");
+            lightObject.transform.SetParent(button, false);
+            lightObject.transform.localPosition = Vector3.up * 0.65f;
+            Light light = lightObject.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = color;
+            light.range = 1.2f;
+            light.intensity = 0f;
+            light.shadows = LightShadows.None;
+        }
         private static Material Mat(string name) => AssetDatabase.LoadAssetAtPath<Material>("Assets/MichaelManor/Materials/" + name + ".mat");
         private static Transform Find(Scene scene, string name) => scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<Transform>(true)).FirstOrDefault(t => t.name == name);
         private static ManorKeyArtifact Artifact(string id) => Object.FindObjectsByType<ManorKeyArtifact>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(a => a.ArtifactId == id);

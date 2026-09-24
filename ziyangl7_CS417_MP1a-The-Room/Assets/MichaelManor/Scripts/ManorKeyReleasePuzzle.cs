@@ -21,6 +21,8 @@ namespace MichaelManor
         public bool IsSolved { get; private set; }
         public int SequencePosition => sequencePosition;
         public event Action<ManorKeyReleasePuzzle> Solved;
+        public event Action<int, bool> ButtonFeedbackRequested;
+        public event Action ButtonFeedbackReset;
 
         public void Configure(ManorThreeStagePuzzle ritualController, int unlockStage, int[] order,
             Transform movingBarrier, Vector3 openedPosition, ManorKeyArtifact key, TMP_Text statusText)
@@ -37,11 +39,21 @@ namespace MichaelManor
         {
             if (IsSolved || routine != null || requiredOrder == null || requiredOrder.Length == 0) return false;
             if (requiredRitualStage >= 0 && (ritual == null || ritual.CurrentStage < requiredRitualStage))
-            { if (status != null) status.text = "SEALED - COMPLETE THE CELESTIAL LOCK"; return false; }
+            {
+                if (status != null) status.text = "SEALED - COMPLETE THE CELESTIAL LOCK";
+                ButtonFeedbackRequested?.Invoke(index, false);
+                return false;
+            }
             if (index != requiredOrder[sequencePosition])
-            { sequencePosition = 0; if (status != null) status.text = "WRONG ORDER - BEGIN AGAIN"; return false; }
+            {
+                sequencePosition = 0;
+                if (status != null) status.text = "WRONG ORDER - BEGIN AGAIN";
+                ButtonFeedbackRequested?.Invoke(index, false);
+                return false;
+            }
             sequencePosition++;
             if (status != null) status.text = $"SEQUENCE  {sequencePosition} / {requiredOrder.Length}";
+            ButtonFeedbackRequested?.Invoke(index, true);
             if (sequencePosition == requiredOrder.Length) routine = StartCoroutine(OpenRoutine());
             return true;
         }
@@ -78,6 +90,7 @@ namespace MichaelManor
             if (routine != null) StopCoroutine(routine); routine = null; sequencePosition = 0; IsSolved = false;
             if (barrier != null) barrier.localPosition = closedPosition;
             if (status != null) status.text = requiredRitualStage < 0 ? "SEQUENCE  0 / 3" : "SEALED UNTIL THE CELESTIAL LOCK";
+            ButtonFeedbackReset?.Invoke();
         }
     }
 }
