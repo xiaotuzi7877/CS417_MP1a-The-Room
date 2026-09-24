@@ -105,7 +105,7 @@ STATUS SUMMARY
   [DONE]        Section 0 - planning and tracker
   [DONE]        Section 1 - shared quest, chamber, and gate foundation
   [DONE]        Section 2 - Watcher Lock chest Reveal and Midnight Codex
-  [NOT STARTED] Section 3 - five hall Gates, teleport travel, and Return Runes
+  [DONE]        Section 3 - five hall Gates, teleport travel, and Return Runes
   [NOT STARTED] Section 4 - Cellar Cache and Bone Closet
   [NOT STARTED] Section 5 - Coffin Vault and Portrait Chamber
   [NOT STARTED] Section 6 - Moon Crypt, three-button puzzle, and second Lock
@@ -257,7 +257,7 @@ SECTION 3 - FIVE HALL GATES, TELEPORT TRAVEL, AND RETURN RUNES
 ================================================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Purpose:
   Implement one reusable, player-initiated Gate system and make all five isolated
@@ -286,15 +286,15 @@ Implementation scope:
   - Do not add the chamber-specific interactions yet.
 
 Acceptance criteria:
-  [ ] All five Gates remain disabled before Lock 1.
-  [ ] Every Gate requires deliberate interaction.
-  [ ] Every Gate reaches its unique isolated location.
-  [ ] Every Return Rune returns to a safe hall location.
-  [ ] No room can be reached by ordinary walking before using its Gate.
-  [ ] Held item remains held through travel when practical with the current XR rig.
-  [ ] Repeated entry/return does not offset or rotate the player incorrectly.
-  [ ] Existing ritual and manually adjusted instruction panels remain unchanged.
-  [ ] Play Mode console has zero errors.
+  [x] All five Gates remain disabled before Lock 1.
+  [x] Every Gate requires deliberate interaction.
+  [x] Every Gate reaches its unique isolated location.
+  [x] Every Return Rune returns to a safe hall location.
+  [x] No room can be reached by ordinary walking before using its Gate.
+  [x] Held item remains held through travel when practical with the current XR rig.
+  [x] Repeated entry/return does not offset or rotate the player incorrectly.
+  [x] Existing ritual and manually adjusted instruction panels remain unchanged.
+  [x] Play Mode console has zero errors.
 
 Rubric evidence created by this Section:
   - Gate Affordance
@@ -304,7 +304,9 @@ Expected focused commit:
   build reusable five gate travel
 
 Notes:
-  None.
+  Added five explicit XR-select Gate affordances, five isolated room shells at
+  x=80..200, safe Spawn Points and Return Runes, and rig-level travel that aligns
+  the tracked head without camera animation. Instruction panels were untouched.
 
 
 SECTION 4 - CELLAR CACHE AND BONE CLOSET
@@ -699,3 +701,16 @@ Entry 003
   Commit: reveal codex after watcher lock
   Push status: not pushed
   Remaining notes: Section 3 supplies deliberate Gate travel and Return Runes.
+
+Entry 004
+  Date: 2026-09-23
+  Section: 3 - five hall Gates, teleport travel, and Return Runes
+  Result: DONE
+  Summary: Added five explicit Gate affordances, five isolated room shells,
+           Spawn Points, Return Runes, and XR-rig-safe same-scene travel.
+  Validation: Locked Gate rejected activation; all 5 unique arrivals and all 5
+              returns passed exact head position/yaw checks; repeated travel stayed
+              aligned; original three-stage ritual passed; zero console errors.
+  Commit: build reusable five gate travel
+  Push status: not pushed
+  Remaining notes: Section 4 fills Cellar and Bone Closet with valid interactions.
