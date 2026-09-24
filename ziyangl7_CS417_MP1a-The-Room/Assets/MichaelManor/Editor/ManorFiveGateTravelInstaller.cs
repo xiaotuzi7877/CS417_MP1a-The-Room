@@ -13,6 +13,9 @@ namespace MichaelManorEditor
     public static class ManorFiveGateTravelInstaller
     {
         private const string ScenePath = "Assets/Scenes/MichaelManorHall.unity";
+        private const float WallInnerSurfaceX = 8.57f;
+        private const float WallPanelThickness = 0.14f;
+        private const float FloorSurfaceY = 0.07f;
 
         private static readonly string[] ShortNames =
         {
@@ -21,11 +24,11 @@ namespace MichaelManorEditor
 
         private static readonly Vector3[] GatePositions =
         {
-            new Vector3(-4.8f, 0.12f, -6.0f),
-            new Vector3(-7.85f, 1.55f, -1.0f),
-            new Vector3(7.85f, 1.55f, 2.0f),
-            new Vector3(-7.85f, 1.85f, 5.5f),
-            new Vector3(7.85f, 2.10f, -5.5f)
+            new Vector3(-4.8f, FloorSurfaceY + 0.06f, -6.0f),
+            new Vector3(-WallInnerSurfaceX + WallPanelThickness * 0.5f, 1.55f, -1.0f),
+            new Vector3(WallInnerSurfaceX - WallPanelThickness * 0.5f, 1.55f, 2.0f),
+            new Vector3(-WallInnerSurfaceX + WallPanelThickness * 0.5f, 1.85f, 5.5f),
+            new Vector3(WallInnerSurfaceX - WallPanelThickness * 0.5f, 2.10f, -5.5f)
         };
 
         private static readonly Vector3[] ChamberPositions =
@@ -70,9 +73,7 @@ namespace MichaelManorEditor
                 visual.position = GatePositions[i];
 
                 bool floorGate = i == 0;
-                visual.rotation = floorGate
-                    ? Quaternion.identity
-                    : Quaternion.Euler(0f, GatePositions[i].x < 0f ? 90f : -90f, 0f);
+                visual.rotation = Quaternion.identity;
 
                 CreateGateVisual(i, visual, darkWood, i == 4 ? moon : purple, floorGate);
                 Renderer[] runeRenderers = visual.GetComponentsInChildren<Renderer>(true)
@@ -118,6 +119,94 @@ namespace MichaelManorEditor
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
             Debug.Log("Installed five explicit hall Gates, isolated shells, Spawn Points, Return Runes, and XR-safe same-scene travel.");
+        }
+
+        [MenuItem("Tools/Michael Manor/Align Five Gate Panels To Surfaces")]
+        public static void AlignFiveGatePanelsToSurfaces()
+        {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            ManorGatePortal[] gates = UnityEngine.Object.FindObjectsByType<ManorGatePortal>(
+                    FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .OrderBy(gate => gate.ChamberIndex).ToArray();
+            if (gates.Length != FiveChamberQuestController.RequiredChamberCount)
+            {
+                Debug.LogError($"Gate alignment stopped: expected 5 Gates, found {gates.Length}.");
+                return;
+            }
+
+            for (int i = 0; i < gates.Length; i++)
+            {
+                Transform visual = gates[i].transform.Find("Visual");
+                Transform panel = visual != null ? visual.Find(PanelName(i)) : null;
+                Transform rune = visual != null ? visual.Find("GateRune") : null;
+                if (visual == null || panel == null || rune == null)
+                {
+                    Debug.LogError($"Gate alignment stopped: Gate {i + 1} is missing Visual, panel, or GateRune.");
+                    return;
+                }
+
+                visual.SetPositionAndRotation(GatePositions[i], Quaternion.identity);
+                if (i == 0)
+                {
+                    panel.localPosition = Vector3.zero;
+                    panel.localScale = new Vector3(1.8f, 0.12f, 1.15f);
+                    rune.localPosition = new Vector3(0f, 0.10f, 0f);
+                    rune.localRotation = Quaternion.identity;
+                }
+                else
+                {
+                    panel.localPosition = Vector3.zero;
+                    panel.localScale = new Vector3(WallPanelThickness, 1.65f, 1.25f);
+                    rune.localPosition = new Vector3(GatePositions[i].x < 0f ? 0.13f : -0.13f, 0f, 0f);
+                    rune.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                }
+
+                EditorUtility.SetDirty(visual);
+                EditorUtility.SetDirty(panel);
+                EditorUtility.SetDirty(rune);
+            }
+
+            ManorTextOrientationFixer.Apply();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("VR PLAYTEST SECTION 5 FIXED: all five Gate panels are flush to their wall or floor surface.");
+        }
+
+        [MenuItem("Tools/Michael Manor/Validate Five Gate Panel Alignment")]
+        public static void ValidateFiveGatePanelAlignment()
+        {
+            ManorGatePortal[] gates = UnityEngine.Object.FindObjectsByType<ManorGatePortal>(
+                    FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .OrderBy(gate => gate.ChamberIndex).ToArray();
+            bool valid = gates.Length == FiveChamberQuestController.RequiredChamberCount;
+            for (int i = 0; valid && i < gates.Length; i++)
+            {
+                Transform visual = gates[i].transform.Find("Visual");
+                Transform panel = visual != null ? visual.Find(PanelName(i)) : null;
+                Transform rune = visual != null ? visual.Find("GateRune") : null;
+                Renderer renderer = panel != null ? panel.GetComponent<Renderer>() : null;
+                valid &= visual != null && panel != null && rune != null && renderer != null &&
+                         panel.GetComponent<Collider>() != null && visual.GetComponent<XRSimpleInteractable>() != null;
+                if (!valid) break;
+
+                Bounds bounds = renderer.bounds;
+                if (i == 0)
+                {
+                    valid &= Mathf.Abs(bounds.min.y - FloorSurfaceY) < 0.015f && bounds.size.y < 0.15f;
+                }
+                else
+                {
+                    bool leftWall = GatePositions[i].x < 0f;
+                    float wallContactFace = leftWall ? bounds.min.x : bounds.max.x;
+                    bool runeFacesHall = leftWall ? rune.position.x > bounds.center.x : rune.position.x < bounds.center.x;
+                    valid &= Mathf.Abs(Mathf.Abs(wallContactFace) - WallInnerSurfaceX) < 0.015f &&
+                             bounds.size.x < 0.18f && bounds.size.z > 1.20f && runeFacesHall;
+                }
+            }
+
+            if (valid) Debug.Log("FIVE GATE PANEL ALIGNMENT PASS: floor Gate is seated and four wall panels are flush, correctly oriented, and interactive.");
+            else Debug.LogError("Five Gate panel alignment validation failed.");
         }
 
         [MenuItem("Tools/Michael Manor/Test Five Gate Travel In Play Mode")]
@@ -189,7 +278,7 @@ namespace MichaelManorEditor
 
             CreatePart(index == 1 ? "CabinetPortal" : index == 2 ? "FuneraryPortal" :
                 index == 3 ? "PortraitPortal" : "MoonPortal", PrimitiveType.Cube, parent,
-                Vector3.zero, new Vector3(0.18f, 1.65f, 1.25f), frame);
+                Vector3.zero, new Vector3(WallPanelThickness, 1.65f, 1.25f), frame);
             Transform disc = CreatePart("GateRune", PrimitiveType.Cylinder, parent,
                 new Vector3(parent.position.x < 0f ? 0.13f : -0.13f, 0f, 0f),
                 new Vector3(0.38f, 0.055f, 0.38f), rune);
@@ -232,6 +321,10 @@ namespace MichaelManorEditor
         }
 
         private static Material LoadMaterial(string name) => AssetDatabase.LoadAssetAtPath<Material>($"Assets/MichaelManor/Materials/{name}.mat");
+
+        private static string PanelName(int index) => index == 0 ? "LooseFloorboard" :
+            index == 1 ? "CabinetPortal" : index == 2 ? "FuneraryPortal" :
+            index == 3 ? "PortraitPortal" : "MoonPortal";
 
         private static GameObject FindSceneObject(Scene scene, string name)
         {
