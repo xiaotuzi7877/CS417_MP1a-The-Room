@@ -217,3 +217,34 @@ Acceptance:
 
 Expected commit:
   add vr magnifying glass
+
+
+FINAL ACCEPTANCE - SECTIONS 0 TO 18
+===================================
+
+Status:
+  DONE (2026-09-24)
+
+Validation:
+  [x] Full Ritual QA PASS, 0 console errors: 20:1 key mass ratio, 13 red herrings,
+      no stray dynamic Rigidbody, 17-step route through real XR sockets, false
+      relics and an early Moonstone rejected and cleared, 10 aligned Gate trips,
+      5 wrong orders rejected, reset from stages 0-3, 19 grabbables dropped one at
+      a time over the clear centre aisle and settled, door opens, text fades.
+  [x] All 13 per-Section tests PASS in one Play session (direct grab, restart,
+      Moon Crypt timer, Moon Shards, key-release puzzles, red herrings, angle
+      writing, blacklight, handmirror, magnifier, quest progress, Moon Crypt,
+      five-Gate travel).
+  [x] Scene validation: no missing scripts or broken references.
+  [x] Game-view full-route recording (tmp/Recordings/final_route.gif) reviewed,
+      now including the BAT-WOLF-MOON Fang release and LEFT-RIGHT lever release.
+
+Fixes during acceptance:
+  - Drop test now drops each prop alone onto the clear aisle (the simultaneous
+    drop measured furniture collisions, not physics).
+  - Five-Gate travel test counts the inactive Moon Crypt Return Rune.
+  - HandMirrorSurface _MainTex bound to the mirror RenderTexture; Shaders folder
+    meta added.
+
+Expected commit:
+  pass final five chamber acceptance

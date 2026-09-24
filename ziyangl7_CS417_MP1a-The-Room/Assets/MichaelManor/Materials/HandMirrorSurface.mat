@@ -30,9 +30,9 @@ Material:
         m_Scale: {x: -1, y: 1}
         m_Offset: {x: 1, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
+        m_Texture: {fileID: 8400000, guid: 05b858df3531442ada2e924c3a8e8771, type: 2}
+        m_Scale: {x: -1, y: 1}
+        m_Offset: {x: 1, y: 0}
     m_Ints: []
     m_Floats:
     - _AddPrecomputedVelocity: 0

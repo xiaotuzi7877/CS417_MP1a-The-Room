@@ -160,7 +160,13 @@ namespace MichaelManorEditor
                 ritual.ResetPuzzle(); await Wait(1f);
                 Look(start, board); await Wait(3f);                                                    // 1 task board
                 Look(new Vector3(0f, n, -9.5f), new Vector3(0f, 1.8f, 4f)); await Wait(2f);             //   dark Gate runes
-                Look(new Vector3(-4f, n, -9.6f), Key("SilverFang").transform.position); await Wait(2f); // 2 Silver Fang on its table
+                Vector3 fangAt = Key("SilverFang").transform.position;                                   // 2 sealed Silver Fang
+                Look(new Vector3(fangAt.x, n, fangAt.z - 2.6f), fangAt); await Wait(2f);
+                foreach (string rune in new[] { "PortraitRune_WOLF", "PortraitRune_BAT", "PortraitRune_WOLF", "PortraitRune_MOON" })
+                {                                                                                          //   wrong start, then BAT WOLF MOON
+                    GameObject.Find(rune)?.GetComponent<ManorKeyReleaseButton>()?.PressForTest(); await Wait(0.9f);
+                }
+                await Wait(2f);
                 Look(new Vector3(-6.2f, n, -9.3f), new Vector3(-8.05f, 1.8f, -9.3f)); await Wait(0.8f);
                 await Carry(Key("SilverFang"), "SilverFangWatcherSocket", 1.5f);                         // 3 into the Watcher Lock
                 await Wait(2f);
@@ -182,7 +188,12 @@ namespace MichaelManorEditor
                 Look(new Vector3(199.2f, n, -1.8f), new Vector3(197.75f, 1f, -0.25f)); await Wait(0.8f);
                 await Carry(Key("Moonstone"), "MoonstoneOrrerySocket", 1.5f);                            // 13 Celestial Lock
                 await Wait(1.5f);
-                Look(new Vector3(201.0f, n, -1.8f), new Vector3(202.35f, 1.1f, 1.0f)); await Wait(3f);  // 14 Blood Sigil revealed
+                Look(new Vector3(201.0f, n, -1.8f), new Vector3(202.35f, 1.1f, 1.0f)); await Wait(2.5f); // 14 slab rises on the lever seal
+                foreach (string lever in new[] { "Lever_LEFT", "Lever_RIGHT" })
+                {
+                    GameObject.Find(lever)?.GetComponent<ManorKeyReleaseButton>()?.PressForTest(); await Wait(0.9f);
+                }
+                await Wait(2.5f);                                                                         //   Blood Sigil released
                 Look(new Vector3(201.0f, n, -3.8f), new Vector3(202.3f, 0.1f, -2.6f)); await Wait(1.2f);
                 var blood = Key("BloodSigil");
                 runes.First(r => r.ChamberIndex == 4).TryReturn(); await Wait(0.3f);                     // 15 back to the hall

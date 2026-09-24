@@ -282,34 +282,41 @@ namespace MichaelManorEditor
                 .Where(g => g.GetComponent<Rigidbody>() != null).ToArray();
             var saved = grabbables.Select(g => (grab: g, active: g.gameObject.activeSelf, pos: g.transform.position,
                 rot: g.transform.rotation, kinematic: g.GetComponent<Rigidbody>().isKinematic)).ToArray();
-            for (int i = 0; i < grabbables.Length; i++)
-            {
-                Rigidbody body = grabbables[i].GetComponent<Rigidbody>();
-                grabbables[i].gameObject.SetActive(true);
-                Vector3 drop = new Vector3(-6f + (i % 8) * 1.7f, 1.3f, 2.5f + (i / 8) * 1.5f);
-                grabbables[i].transform.position = drop;
-                body.position = drop;
-                body.isKinematic = false;
-                body.linearVelocity = Vector3.zero;
-            }
-            await Wait(3f);
-            foreach (XRGrabInteractable grab in grabbables)
-            {
-                Rigidbody body = grab.GetComponent<Rigidbody>();
-                float y = grab.transform.position.y;
-                Check(y > -0.05f && y < 0.6f && body.linearVelocity.magnitude < 0.2f, $"{grab.name} did not settle on the floor (y={y:F2})");
-            }
-            notes.Add($"{grabbables.Length} grabbables dropped and settled");
+            // Test one prop at a time over the verified-clear centre aisle. Testing every prop
+            // simultaneously made later props land on furniture or on one another, which measured
+            // the room layout rather than whether each object has working solid-body physics.
             foreach (var item in saved)
             {
                 Rigidbody body = item.grab.GetComponent<Rigidbody>();
+                item.grab.gameObject.SetActive(true);
+                Vector3 drop = new Vector3(0f, 1.5f, -10f);
+                item.grab.transform.SetPositionAndRotation(drop, Quaternion.identity);
+                body.position = drop;
+                body.rotation = Quaternion.identity;
+                body.isKinematic = false;
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+                await Wait(2f);
+
+                Collider[] solidColliders = item.grab.GetComponentsInChildren<Collider>(true)
+                    .Where(c => c.enabled && !c.isTrigger).ToArray();
+                float lowestPoint = solidColliders.Length > 0
+                    ? solidColliders.Min(c => c.bounds.min.y)
+                    : item.grab.transform.position.y;
+                Check(solidColliders.Length > 0 && lowestPoint > -0.08f && lowestPoint < 0.18f &&
+                      body.linearVelocity.magnitude < 0.2f,
+                    $"{item.grab.name} did not settle on the floor (lowest={lowestPoint:F2}, speed={body.linearVelocity.magnitude:F2})");
+
                 item.grab.transform.SetPositionAndRotation(item.pos, item.rot);
                 body.position = item.pos;
                 body.rotation = item.rot;
-                if (!body.isKinematic) body.linearVelocity = Vector3.zero;
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
                 body.isKinematic = item.kinematic;
                 item.grab.gameObject.SetActive(item.active);
+                await Wait(0.1f);
             }
+            notes.Add($"{grabbables.Length} grabbables individually dropped and settled");
         }
 
         private static async Task ExpectBoard(int stage, int explored, string objectiveWord, string when)

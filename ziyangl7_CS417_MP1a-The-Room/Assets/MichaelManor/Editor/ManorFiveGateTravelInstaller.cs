@@ -133,7 +133,9 @@ namespace MichaelManorEditor
             ManorGateTravelSystem travel = UnityEngine.Object.FindFirstObjectByType<ManorGateTravelSystem>();
             ManorGatePortal[] gates = UnityEngine.Object.FindObjectsByType<ManorGatePortal>(FindObjectsSortMode.None)
                 .OrderBy(gate => gate.ChamberIndex).ToArray();
-            ManorReturnRune[] returns = UnityEngine.Object.FindObjectsByType<ManorReturnRune>(FindObjectsSortMode.None)
+            // The Moon Crypt rune stays hidden until the Celestial Lock (Section 6), so include inactive runes.
+            ManorReturnRune[] returns = UnityEngine.Object.FindObjectsByType<ManorReturnRune>(
+                    FindObjectsInactive.Include, FindObjectsSortMode.None)
                 .OrderBy(rune => rune.ChamberIndex).ToArray();
 
             if (controller == null || travel == null || gates.Length != 5 || returns.Length != 5)
