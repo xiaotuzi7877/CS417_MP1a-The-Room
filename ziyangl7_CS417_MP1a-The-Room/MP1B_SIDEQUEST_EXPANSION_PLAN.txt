@@ -1,0 +1,96 @@
+MP1B SIDEQUEST EXPANSION - SECTIONS 9 TO 13
+============================================
+
+Rules:
+  - Complete, validate, and commit one Section at a time.
+  - Never run Layout Entry Mission Wall.
+  - Preserve unrelated local files and settings.
+  - Every Section ends with Play Mode validation and zero console errors.
+
+
+SECTION 9 - DIRECT GRAB AND SIGNIFIER COMPLIANCE
+================================================
+
+Status:
+  DONE
+
+Scope:
+  - Add an explicit XRDirectInteractor to each hand while retaining the modern
+    Near-Far, Ray, and Poke systems.
+  - Share each hand's input and attach transform with its Direct Interactor.
+  - Register both Direct Interactors in their existing interaction groups.
+  - Document Grab, Escape, Lock, and Repetition/Variety signifiers explicitly.
+
+Acceptance:
+  [x] Exactly two enabled XRDirectInteractors exist in Play Mode.
+  [x] Each has a trigger volume, attach transform, and interaction group.
+  [x] Existing six grabbable ritual/false artifacts remain valid.
+  [x] Full ritual regression passes with zero console errors.
+  [x] Contribution wording explicitly covers every signifier category.
+
+Expected commit:
+  add explicit direct grab compliance
+
+
+SECTION 10 - WORLD SPACE RESTART BUTTON
+=======================================
+
+Status:
+  NOT STARTED
+
+Scope:
+  - Add a readable HOLD TO RESTART control near the mission wall.
+  - Require deliberate hold/select interaction to prevent accidental resets.
+  - Reset ritual, chambers, gates, Moon Crypt, artifacts, door, and celebration.
+
+Expected commit:
+  add vr ritual restart control
+
+
+SECTION 11 - MOON CRYPT LOSS TIMER
+==================================
+
+Status:
+  NOT STARTED
+
+Scope:
+  - Start a visible 2:30 timer when the Moon Crypt Gate is used.
+  - Stop it after the Moonstone sequence is solved or the player leaves.
+  - On expiry, show a clear loss message, reset only Moon Crypt, and return the
+    player to the hall so the challenge can be retried.
+
+Expected commit:
+  add moon crypt loss timer
+
+
+SECTION 12 - MOON SHARD COLLECTIBLES
+====================================
+
+Status:
+  NOT STARTED
+
+Scope:
+  - Place eight unique Moon Shards across the hall and five chambers.
+  - Collect each once through an explicit VR interaction.
+  - Display MOON SHARDS N / 8 in the world-space progress display.
+  - Restore all shards on Restart without gating the main escape route.
+
+Expected commit:
+  add moon shard collectibles
+
+
+SECTION 13 - THREE KEY-RELEASE PUZZLES AND PUZZLE SCOREBOARD
+============================================================
+
+Status:
+  NOT STARTED
+
+Scope:
+  - Add a BAT -> WOLF -> MOON portrait sequence that releases Silver Fang.
+  - Keep WOLF -> MOON -> BLOOD as the Moonstone puzzle.
+  - Add a LEFT -> RIGHT lever sequence after the Celestial Lock that releases
+    Blood Sigil instead of making it immediately reachable.
+  - Add PUZZLES SOLVED N / 3 and CLUES FOUND N / 3 to the in-world board.
+
+Expected commit:
+  build three key release puzzles

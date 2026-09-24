@@ -55,6 +55,25 @@ Perform every step manually in VR. `K` (solve all), `W` (replay win), and `R` (r
 
 I built the Michael Manor five-chamber ritual. Three Key Props with a 20:1 mass range (Silver Fang 0.8 kg, Moonstone 0.1 kg, Blood Sigil 2.0 kg) must be placed into three XR socket Locks in order; wrong or early items are rejected with a red light and pushed back out of the Lock. The first Lock opens a chest that reveals a Midnight Codex and a five-passage map and activates five hall Gates. Each Gate is an explicit rune interaction that teleports the XR rig to its own chamber and back through a Return Rune. Four chambers are false leads with their own lever or button Reveal (cellar cache, bone closet, coffin, portrait); three of them release grabbable red herrings (Rusty Key, Wooden Fang, Black Rose) that no Lock accepts. The Moon Crypt holds the puzzle: WOLF, MOON, BLOOD buttons that turn blue when correct and flash red and reset when wrong. The correct order slides a stone slab aside to reveal the Moonstone, and the Moonstone in the Celestial Lock raises a second slab to reveal the Blood Sigil. The in-world board tracks ritual progress, keys and locks remaining, chambers explored (counted only after each chamber's interaction), and the current objective; Gate runes change color and show EXPLORED. Inserting the Blood Sigil opens the exit and plays the Win Celebration.
 
+### Signifier Statement
+
+- **Grab signifier:** both hands have explicit Direct Interactors. The instruction
+  wall teaches `Grip = pick up and hold`, while the three true artifacts and three
+  false relics are small hand-sized objects with distinct handles, bright metal or
+  magical highlights, and physical fall/tumble behavior.
+- **Escape signifier:** the sealed exit door, the `RITUAL PROGRESS` board, and the
+  blue current-Lock light establish that the three ritual Locks are the route out.
+  Completed Locks turn green/gold and the final Lock physically opens the exit.
+- **Lock signifier:** the board names the current Key and destination; plaques read
+  `FANG -> WATCHER`, `MOON -> HEAVENS`, and `BLOOD -> EXIT`; each Lock repeats its
+  Key's name, color, and celestial/blood shape. A wrong or early item flashes red
+  and is pushed out.
+- **Repetition and variety:** all three Locks teach the same physical rule—carry a
+  hand-sized artifact to a glowing socket and release it inside—but their outcomes
+  increase in scope: the Fang reveals a Codex and five passages, the Moonstone
+  opens a hidden Blood Sigil vault, and the Blood Sigil opens the exit and starts
+  the full Win Celebration.
+
 ## Evidence Map
 
 | Requirement | Scene or script evidence |
