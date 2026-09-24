@@ -119,3 +119,81 @@ Acceptance:
 
 Expected commit:
   build three key release puzzles
+
+
+SECTION 14 - THIRTEEN RED HERRINGS
+==================================
+
+Status:
+  DONE
+
+Scope:
+  - Add ten visually distinct grabbable false relics to the existing three.
+  - Give every relic a Rigidbody, Collider, XRGrabInteractable, unique identity,
+    and an obvious FALSE RELIC signifier.
+  - Confirm none is accepted by any ritual Lock.
+
+Acceptance:
+  [x] Exactly thirteen uniquely named false relics exist.
+  [x] All have Rigidbody, Collider, XRGrabInteractable, and FALSE RELIC label.
+  [x] Dedicated Play Mode test and scene validation pass.
+
+Expected commit:
+  add full red herring collection
+
+
+SECTION 15 - ANGLE REVEALED INVISIBLE WRITING
+==============================================
+
+Status:
+  NOT STARTED
+
+Scope:
+  - Add a custom fragment shader whose writing becomes readable only from a
+    deliberately oblique viewing angle.
+  - Place an instructional inspection plaque and verify the effect in Play Mode.
+
+Expected commit:
+  add angle revealed writing
+
+
+SECTION 16 - GRABBABLE BLACKLIGHT REVEAL
+========================================
+
+Status:
+  NOT STARTED
+
+Scope:
+  - Add a grabbable Blacklight prop with a visible beam direction.
+  - Make a second hidden message appear only when the Blacklight points at it.
+
+Expected commit:
+  add directional blacklight clue
+
+
+SECTION 17 - REVERSED HANDMIRROR
+================================
+
+Status:
+  NOT STARTED
+
+Scope:
+  - Add a grabbable handmirror with its own Camera and RenderTexture.
+  - Reverse the displayed image left-to-right and provide mirrored clue text.
+
+Expected commit:
+  add reversed vr handmirror
+
+
+SECTION 18 - MAGNIFYING GLASS
+=============================
+
+Status:
+  NOT STARTED
+
+Scope:
+  - Add a grabbable magnifying glass with a dedicated Camera/RenderTexture.
+  - Use a narrower field of view so the lens visibly magnifies its subject.
+
+Expected commit:
+  add vr magnifying glass
