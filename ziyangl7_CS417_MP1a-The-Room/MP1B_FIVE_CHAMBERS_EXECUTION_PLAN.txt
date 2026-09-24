@@ -374,7 +374,7 @@ SECTION 5 - COFFIN VAULT AND PORTRAIT CHAMBER
 ==============================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Purpose:
   Complete the remaining two false chambers, the third Red Herring, and the direct
@@ -408,14 +408,14 @@ Chamber 4 - Portrait Chamber:
   - No jump scare, eye-tracking system, complex shader, or extra puzzle.
 
 Acceptance criteria:
-  [ ] Coffin and Portrait each contain a valid post-Gate interaction.
-  [ ] Coffin completion reveals a grabbable Black Rose.
-  [ ] Black Rose is obviously false and is rejected by ritual Locks.
-  [ ] Three total Red Herrings now have unique models, Rigidbodies, and grabs.
-  [ ] Portrait interaction reveals a readable Moon Crypt clue and moon symbol.
-  [ ] Explored count can reach 4/5 only after all four false interactions.
-  [ ] Return Runes remain usable.
-  [ ] Play Mode console has zero errors.
+  [x] Coffin and Portrait each contain a valid post-Gate interaction.
+  [x] Coffin completion reveals a grabbable Black Rose.
+  [x] Black Rose is obviously false and is rejected by ritual Locks.
+  [x] Three total Red Herrings now have unique models, Rigidbodies, and grabs.
+  [x] Portrait interaction reveals a readable Moon Crypt clue and moon symbol.
+  [x] Explored count can reach 4/5 only after all four false interactions.
+  [x] Return Runes remain usable.
+  [x] Play Mode console has zero errors.
 
 Rubric evidence created by this Section:
   - third and fourth Gated Locations
@@ -426,7 +426,11 @@ Expected focused commit:
   add coffin and portrait chambers
 
 Notes:
-  None.
+  Coffin Vault uses a labeled OPEN control and eased ornate lid to reveal a
+  0.55 kg Black Rose. Portrait Chamber uses a glowing eye to slide away a real
+  obstruction and expose the Moon Crypt clue and moon symbol. Play Mode verified
+  four one-shot reveals, three unique grabbable red herrings, five Return Runes,
+  exact 20:1 key mass ratio, and zero console errors.
 
 
 SECTION 6 - MOON CRYPT, THREE-BUTTON PUZZLE, AND SECOND LOCK
@@ -730,3 +734,17 @@ Entry 005
   Commit: add cellar and bone closet chambers
   Push status: not pushed
   Remaining notes: Continue at Section 5 - Coffin Vault and Portrait Chamber.
+
+Entry 006
+  Date: 2026-09-23
+  Section: 5 - Coffin Vault and Portrait Chamber
+  Result: DONE
+  Summary: Added two post-Gate interactions, an eased coffin Reveal with a unique
+           Black Rose red herring, and a portrait-eye Reveal with a Moon Crypt clue.
+  Validation: Four false chambers reached exactly 4/5; all four Reveals rejected
+              repeats; three red herrings had Rigidbody and Grab Interactable;
+              five Return Runes remained present; key mass ratio stayed 20:1;
+              Play Mode console ended with zero errors.
+  Commit: add coffin and portrait chambers
+  Push status: not pushed
+  Remaining notes: Continue at Section 6 - Moon Crypt, sequence, and second Lock.
