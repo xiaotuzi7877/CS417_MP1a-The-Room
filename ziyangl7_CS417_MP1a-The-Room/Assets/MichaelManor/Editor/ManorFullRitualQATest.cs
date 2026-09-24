@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MichaelManor;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -9,7 +10,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace MichaelManorEditor
 {
-    /// Section 8 integration QA. Drives the full five-chamber route through the real XR
+    /// Full integration QA. Drives the five-chamber route through the real XR
     /// sockets and interactables, then checks resets, travel, false relics, drops, and the win.
     /// Prints one summary line: FULL RITUAL QA PASS/FAIL.
     public static class ManorFullRitualQATest
@@ -78,13 +79,18 @@ namespace MichaelManorEditor
             Application.logMessageReceived += WatchCongrats;
 
             StaticChecks();
+            VrPlaytestRepairChecks();
 
             ritual.ResetPuzzle();
             await Wait(2f);
             Vector3 fangHome = fang.transform.position;
+            await FangReleaseFeedbackChecks();
+            ritual.ResetPuzzle();
+            await Wait(1f);
             await ExpectBoard(0, 0, "SILVER FANG", "start");
 
             // Route 2-4: grab Silver Fang and insert it through the real Watcher socket.
+            await ReleaseFangForRoute();
             await Insert(fang, 0, "Silver Fang");
             await Until(() => gates.All(g => g.IsUnlocked), 5f);
             Check(ritual.CurrentStage == 1 && gates.All(g => g.IsUnlocked), "Watcher Lock did not open the chest and unlock five Gates");
@@ -149,6 +155,7 @@ namespace MichaelManorEditor
 
             // Route 16-17: Blood Sigil into the Exit Lock; door, lights, celebration, text fade.
             Vector3 doorClosed = DoorPosition();
+            await ReleaseBloodForRoute();
             await Insert(blood, 2, "Blood Sigil");
             await Until(() => ritual.IsComplete, 6f);
             await Until(() => celebration.HasWon, 10f);       // the win follows the seal and door animation
@@ -169,6 +176,7 @@ namespace MichaelManorEditor
             });
             await ResetAt(1, fangHome, async () =>
             {
+                await ReleaseFangForRoute();
                 await Insert(fang, 0, "Silver Fang");
                 await Until(() => gates.All(g => g.IsUnlocked), 5f);
                 gates[1].TryRequestActivation(); reveals[1].TryActivate(); await Wait(1.5f); runes[1].TryReturn();
@@ -177,6 +185,7 @@ namespace MichaelManorEditor
             });
             await ResetAt(2, fangHome, async () =>
             {
+                await ReleaseFangForRoute();
                 await Insert(fang, 0, "Silver Fang");
                 await Until(() => gates.All(g => g.IsUnlocked), 5f);
                 buttons[0].Press(); buttons[1].Press(); buttons[2].Press();
@@ -206,6 +215,177 @@ namespace MichaelManorEditor
                 .Select(b => b.name).ToArray();
             Check(badBodies.Length == 0, "static objects with dynamic Rigidbody: " + string.Join(",", badBodies));
             notes.Add($"mass ratio {ratio:F1}:1, {herrings.Length} red herrings, no stray dynamic bodies");
+        }
+
+        /// Regression coverage for VR playtest repairs Sections 1, 2, 4, and 5. These are
+        /// scene-layout invariants, so catch installer regressions before putting on a headset.
+        private static void VrPlaytestRepairChecks()
+        {
+            Transform missionBoard = GameObject.Find("RitualProgressBoard")?.transform;
+            TMP_Text progress = missionBoard?.Find("ProgressText")?.GetComponent<TMP_Text>();
+            TMP_Text clue = missionBoard?.Find("CurrentClueText")?.GetComponent<TMP_Text>();
+            TMP_Text counter = missionBoard?.Find("PuzzleAndClueCounter")?.GetComponent<TMP_Text>();
+            bool boardLayout = progress != null && clue != null && counter != null &&
+                               progress.transform.localPosition.y > clue.transform.localPosition.y &&
+                               clue.transform.localPosition.y > counter.transform.localPosition.y &&
+                               TextBottom(progress) > TextTop(clue) && TextBottom(clue) > TextTop(counter) &&
+                               Faces(progress.transform, Vector3.forward) && Faces(clue.transform, Vector3.forward) &&
+                               Faces(counter.transform, Vector3.forward);
+            Check(boardLayout, "entry mission board text is missing, overlapping, out of order, or mirrored");
+
+            Transform fangPuzzle = GameObject.Find("SilverFangReleasePuzzle")?.transform;
+            string[] words = { "BAT", "WOLF", "MOON" };
+            bool labels = fangPuzzle != null && words.All(word =>
+            {
+                TMP_Text label = fangPuzzle.Find("Label_" + word)?.GetComponent<TMP_Text>();
+                Transform button = fangPuzzle.Find("PortraitRune_" + word);
+                return label != null && button != null && label.text.Trim() == word &&
+                       Mathf.Abs(label.transform.position.x - button.position.x) < 0.01f &&
+                       label.transform.position.y > button.position.y && Faces(label.transform, Vector3.back);
+            });
+            Check(labels, "Silver Fang BAT/WOLF/MOON labels are missing, mismatched, or mirrored");
+
+            Transform displayCase = GameObject.Find("SilverFang_DisplayCase")?.transform;
+            string[] panelNames = { "GlassFront", "GlassBack", "GlassLeft", "GlassRight", "GlassTop", "GlassBottom" };
+            bool enclosed = displayCase != null && panelNames.All(name =>
+            {
+                Transform panel = displayCase.Find(name);
+                Renderer renderer = panel != null ? panel.GetComponent<Renderer>() : null;
+                return panel != null && panel.GetComponent<BoxCollider>() != null && renderer != null &&
+                       renderer.sharedMaterial != null && renderer.sharedMaterial.color.a < 0.5f;
+            });
+            if (enclosed)
+            {
+                Bounds item = CombinedBounds(fang.transform);
+                Bounds front = displayCase.Find("GlassFront").GetComponent<Renderer>().bounds;
+                Bounds back = displayCase.Find("GlassBack").GetComponent<Renderer>().bounds;
+                Bounds left = displayCase.Find("GlassLeft").GetComponent<Renderer>().bounds;
+                Bounds right = displayCase.Find("GlassRight").GetComponent<Renderer>().bounds;
+                Bounds top = displayCase.Find("GlassTop").GetComponent<Renderer>().bounds;
+                Bounds bottom = displayCase.Find("GlassBottom").GetComponent<Renderer>().bounds;
+                enclosed = left.max.x <= item.min.x && right.min.x >= item.max.x &&
+                           bottom.max.y <= item.min.y && top.min.y >= item.max.y &&
+                           front.max.z <= item.min.z && back.min.z >= item.max.z;
+            }
+            Check(enclosed, "transparent six-sided Silver Fang case does not fully enclose the artifact");
+
+            bool gatePanels = gates.Length == 5;
+            for (int i = 0; gatePanels && i < gates.Length; i++)
+            {
+                Transform visual = gates[i].transform.Find("Visual");
+                Transform rune = visual?.Find("GateRune");
+                Renderer panel = visual?.GetComponentsInChildren<Renderer>(true)
+                    .Where(renderer => renderer.transform != rune && renderer.GetComponent<TMP_Text>() == null)
+                    .OrderByDescending(renderer => renderer.bounds.size.sqrMagnitude).FirstOrDefault();
+                gatePanels &= visual != null && rune != null && panel != null &&
+                              visual.GetComponent<XRSimpleInteractable>() != null && panel.GetComponent<Collider>() != null;
+                if (!gatePanels) break;
+
+                Bounds bounds = panel.bounds;
+                if (i == 0)
+                    gatePanels &= Mathf.Abs(bounds.min.y - 0.07f) < 0.015f && bounds.size.y < 0.15f;
+                else
+                {
+                    bool leftWall = bounds.center.x < 0f;
+                    float contactFace = leftWall ? bounds.min.x : bounds.max.x;
+                    bool runeFacesHall = leftWall ? rune.position.x > bounds.center.x : rune.position.x < bounds.center.x;
+                    gatePanels &= Mathf.Abs(Mathf.Abs(contactFace) - 8.57f) < 0.015f &&
+                                  bounds.size.x < 0.18f && bounds.size.z > 1.20f && runeFacesHall;
+                }
+            }
+            Check(gatePanels, "one or more Gate panels are floating, rotated, or not interactive");
+            notes.Add("VR repair layout: mission board, Fang labels/case, and 5 Gate panels");
+        }
+
+        /// Section 3 is time-dependent: verify rejected/accepted light feedback, the three-step
+        /// release, the moving enclosure, grab enablement, and restart cleanup in Play Mode.
+        private static async Task FangReleaseFeedbackChecks()
+        {
+            ManorKeyReleasePuzzle release = GameObject.Find("SilverFangReleasePuzzle")?.GetComponent<ManorKeyReleasePuzzle>();
+            string[] names = { "BAT", "WOLF", "MOON" };
+            ManorKeyReleaseButton[] releaseButtons = names
+                .Select(name => GameObject.Find("PortraitRune_" + name)?.GetComponent<ManorKeyReleaseButton>()).ToArray();
+            XRGrabInteractable grab = fang.GetComponent<XRGrabInteractable>();
+            if (!Check(release != null && releaseButtons.All(button => button != null && button.FeedbackLight != null) && grab != null,
+                       "Silver Fang release feedback setup is incomplete")) return;
+
+            Vector3 closed = release.Barrier.localPosition;
+            bool wrongRejected = !releaseButtons[1].PressForTest();
+            await Wait(0.05f);
+            Check(wrongRejected && release.SequencePosition == 0 && releaseButtons[1].FeedbackLight.intensity > 0f &&
+                  releaseButtons[1].FeedbackLight.color.r > releaseButtons[1].FeedbackLight.color.b,
+                  "wrong Fang button press did not produce red rejection feedback");
+
+            release.ResetPuzzle();
+            bool first = releaseButtons[0].PressForTest();
+            await Wait(0.05f);
+            Check(first && release.SequencePosition == 1 && releaseButtons[0].FeedbackLight.intensity > 0f &&
+                  releaseButtons[0].FeedbackLight.color.b > releaseButtons[0].FeedbackLight.color.r,
+                  "accepted Fang button press did not produce blue feedback");
+            releaseButtons[1].PressForTest();
+            await Wait(0.22f);
+            releaseButtons[2].PressForTest();
+            await Until(() => release.IsSolved, 3f);
+            Check(release.IsSolved && grab.enabled && Vector3.Distance(closed, release.Barrier.localPosition) > 1f,
+                  "three-button Fang sequence did not open the case and enable grabbing");
+
+            release.ResetPuzzle();
+            await Wait(0.05f);
+            Check(!release.IsSolved && !grab.enabled && Vector3.Distance(closed, release.Barrier.localPosition) < 0.01f &&
+                  releaseButtons.All(button => button.FeedbackLight.intensity < 0.01f),
+                  "Restart did not close the Fang case and clear button feedback");
+            notes.Add("Fang wrong/correct feedback, release, and restart");
+        }
+
+        private static async Task ReleaseFangForRoute()
+        {
+            ManorKeyReleasePuzzle release = GameObject.Find("SilverFangReleasePuzzle")?.GetComponent<ManorKeyReleasePuzzle>();
+            string[] names = { "BAT", "WOLF", "MOON" };
+            ManorKeyReleaseButton[] releaseButtons = names
+                .Select(name => GameObject.Find("PortraitRune_" + name)?.GetComponent<ManorKeyReleaseButton>()).ToArray();
+            if (!Check(release != null && releaseButtons.All(button => button != null),
+                       "could not operate the Silver Fang release before the Watcher Lock")) return;
+
+            foreach (ManorKeyReleaseButton button in releaseButtons)
+            {
+                Check(button.PressForTest(), $"Silver Fang route button {button.name} was rejected");
+                await Wait(0.22f);
+            }
+            await Until(() => release.IsSolved, 3f);
+            Check(release.IsSolved && fang.GetComponent<XRGrabInteractable>().enabled,
+                  "Silver Fang was not released for the main route");
+        }
+
+        private static async Task ReleaseBloodForRoute()
+        {
+            ManorKeyReleasePuzzle release = GameObject.Find("BloodSigilLeverPuzzle")?.GetComponent<ManorKeyReleasePuzzle>();
+            string[] names = { "Lever_LEFT", "Lever_RIGHT" };
+            ManorKeyReleaseButton[] releaseButtons = names
+                .Select(name => GameObject.Find(name)?.GetComponent<ManorKeyReleaseButton>()).ToArray();
+            if (!Check(release != null && releaseButtons.All(button => button != null),
+                       "could not operate the Blood Sigil release before the Exit Lock")) return;
+
+            foreach (ManorKeyReleaseButton button in releaseButtons)
+            {
+                Check(button.PressForTest(), $"Blood Sigil route control {button.name} was rejected");
+                await Wait(0.22f);
+            }
+            await Until(() => release.IsSolved, 3f);
+            Check(release.IsSolved && blood.GetComponent<XRGrabInteractable>().enabled,
+                  "Blood Sigil was not released for the main route");
+        }
+
+        private static float TextTop(TMP_Text text) => text.transform.localPosition.y + text.rectTransform.sizeDelta.y * 0.5f;
+        private static float TextBottom(TMP_Text text) => text.transform.localPosition.y - text.rectTransform.sizeDelta.y * 0.5f;
+        private static bool Faces(Transform text, Vector3 readableNormal) => Vector3.Dot(-text.forward, readableNormal) > 0.99f;
+
+        private static Bounds CombinedBounds(Transform root)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0) return new Bounds(root.position, Vector3.zero);
+            Bounds result = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) result.Encapsulate(renderers[i].bounds);
+            return result;
         }
 
         private static async Task Insert(ManorKeyArtifact artifact, int socketIndex, string label)

@@ -64,13 +64,16 @@ MICHAEL MANOR VR 实机问题修补企划
 - 检查正反两侧 EXPLORED 标签，不让标签与板子互相穿插。
 验收：五个入口板均贴墙，无悬空/穿模；站在入口前可稳定点击。
 
-修补 Section 6：全流程回归测试
------------------------------
+修补 Section 6：全流程回归测试（已完成）
+--------------------------------------
 方案：
 - 自动测试三把关键物品、五个 Gate 往返、错误顺序、Restart、最终开门。
+- 将 Section 1-5 的入口任务板、文字朝向、按钮反馈、透明箱体和 Gate 贴墙规则纳入同一套自动检查。
+- 自动流程严格按玩家路径先解开 Silver Fang 箱与 Blood Sigil 封印，不再绕过释放机关直接插入钥匙。
 - PC Play Mode 检查 Console 无 Error/Exception。
 - Quest 实机检查帧率、按钮触达、文字可读性、抓取边界和眩光。
 验收：完整流程可从新游戏连续完成一次，Reset 后可再次完成。
+结果：Unity Play Mode 输出 FULL RITUAL QA PASS；测试期间 Console Error/Exception 为 0。
 
 修补 Section 7：通关 Gate 连接 Minh/MIGN 房间
 -------------------------------------------
@@ -86,8 +89,7 @@ MICHAEL MANOR VR 实机问题修补企划
 执行顺序与当前范围
 ------------------
 [已完成] Section 1 -> Section 2 -> Section 3 -> Section 4
-[已完成] Section 5
-[进行中] Section 6
+[已完成] Section 5 -> Section 6
 [后续] Section 7
 
 后续依赖
