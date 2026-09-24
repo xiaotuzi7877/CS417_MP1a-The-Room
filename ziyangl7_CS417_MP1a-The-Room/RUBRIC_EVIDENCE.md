@@ -12,34 +12,48 @@ Use `Assets/Scenes/MichaelManorHall.unity`. It is build index 0.
 6. Press the right secondary controller button (keyboard: `B`) to break out of the room. Show the skybox and outside platform, then press it again to return.
 7. Press the right primary controller button (keyboard: `Q`) last to demonstrate quit.
 
-## MP1b Three-Lock Recording Order
+## MP1b Five-Chamber Video Shot List
 
-The submitted walkthrough should perform the locks manually in VR. The `K`, `W`, and `R` keys are presentation fallbacks, not substitutes for showing the required XR interactions.
+Perform every step manually in VR. `K` (solve all), `W` (replay win), and `R` (reset) are presentation fallbacks only; keep each Key Prop visibly inside its Lock collider while the Lock completes.
 
-1. Show both controller hands and grab the `SilverFang` from its table.
-2. Carry it to `SilverFangWatcherSocket`; keep the Fang visible inside the collider while the first lock completes.
-3. Show `Portrait_Left_0` easing upward and the `Moonstone` becoming reachable.
-4. Grab the Moonstone and place it into `MoonstoneOrrerySocket`; show the orrery response and the reliquary opening.
-5. Grab the revealed `BloodSigil` and place it into `BloodSigilDoorSocket`.
-6. Keep the Blood Sigil visible in the final socket while the seal retracts, the door opens, particles/lights play, and `CONGRATULATIONS!` appears.
-7. Look back at `RitualProgressBoard` so the final 3/3 state is readable.
+1. Start facing `RitualProgressBoard`: `RITUAL PROGRESS 0 / 3`, `CHAMBERS EXPLORED 0 / 5`, objective "PLACE THE SILVER FANG IN THE WATCHER LOCK". Turn to show the five dark Gate runes.
+2. Grab `SilverFang` from its table (show both hands).
+3. Insert it into `SilverFangWatcherSocket`; the Lock light turns green.
+4. The chest lid eases open, revealing the `MidnightCodex` and `FiveEntranceMap`; all five Gate runes light (four purple, the Moon Gate blue-white). Board: `1 / 3`, "READ THE CODEX ... TOUCH A GLOWING GATE RUNE".
+5. Touch `Gate_01_Cellar` (floorboard rune); pull `CellarLever`; the cache opens and `RustyKey_RedHerring` appears. Use the Return Rune.
+6. `Gate_02_BoneCloset`: press `BoneRevealButton`; `WoodenFang_RedHerring` appears. Return.
+7. `Gate_03_CoffinVault`: press `OpenCoffinButton`; the lid eases open on `BlackRose_RedHerring`. Return.
+8. `Gate_04_Portrait`: press `GlowingEyeButton`; the portrait reveals the Moon Crypt clue. Return. Show the four green runes with `EXPLORED` labels and the board at `4 / 5`.
+9. Touch `Gate_05_MoonCrypt` (blue-white rune).
+10. Read "PRESS IN ORDER: 1. WOLF 2. MOON 3. BLOOD"; press MOON first so all three buttons flash red and the sequence resets.
+11. Press WOLF, MOON, BLOOD; each accepted button turns blue.
+12. `MoonstoneSlab_Moving` slides aside with easing; grab the revealed `Moonstone` (`CHAMBERS EXPLORED 5 / 5`).
+13. Insert it into `MoonstoneOrrerySocket` on the labelled Celestial Lock.
+14. `BloodSlab_Moving` rises, revealing `BloodSigil`; grab it. The gold Return Rune appears.
+15. Use the gold Return Rune to return to the hall; the board reads `2 / 3`, "TAKE THE BLOOD SIGIL TO THE EXIT LOCK".
+16. Insert `BloodSigil` into `BloodSigilDoorSocket`.
+17. The seal retracts, the exit door opens, lights and particles play, and `CONGRATULATIONS!` fades after five seconds; the board reads `3 / 3`.
 
-### MP1b Evidence Map
+## MP1b Evidence Map
 
 | Requirement | Scene or script evidence |
 |---|---|
-| Three Key Props | `SilverFang`, `Moonstone`, `BloodSigil`; each has a Rigidbody, Collider, `XRGrabInteractable`, and `ManorKeyArtifact` |
-| Three Locks | `SilverFangWatcherSocket`, `MoonstoneOrrerySocket`, `BloodSigilDoorSocket`; each uses a trigger Collider and `XRSocketInteractor` |
-| Three required scripts before escape | `ManorThreeStagePuzzle` enforces the ordered artifact IDs and calls the exit sequence only at 3/3 |
-| Grab signifiers | Distinct hand-sized silhouettes, glowing materials, and display/reveal staging |
-| Escape signifiers | Blue active-lock light, numbered plaques, blocked sealed exit, and `RitualProgressBoard` |
-| Lock signifiers | `FANG -> WATCHER`, `MOON -> HEAVENS`, `BLOOD -> EXIT`, reinforced by matching imagery and colors |
-| Repetition and variety | Every stage repeats the ritual insertion language; outcomes vary across moving portrait, celestial response/reliquary, and final seal/door |
-| Eased state changes | Smooth portrait lift, reliquary lid rotation, orrery response, seal shrink/rotation, and door lift |
-| Reveals | First lock uncovers Moonstone; second lock opens the reliquary containing Blood Sigil |
-| Puzzle system | Wrong/out-of-order artifacts are rejected; each valid stage reveals the next required artifact |
-| Progress/Puzzle scoreboards | In-world board shows progress, hidden keys, remaining locks, and total clues |
-| Win Celebration | Door and seal change state, particles/lights play, and timed `CONGRATULATIONS!` text appears |
+| Three Key Props (20:1 mass) | `Puzzle/SilverFangQuest/SilverFang` (0.8 kg), `GatedLocations/Chamber_05_MoonCrypt/Content_Section06/MoonstoneVault/Moonstone` (0.1 kg), `.../BloodSigilVault/BloodSigil` (2.0 kg); each has Rigidbody, Collider, `XRGrabInteractable`, `ManorKeyArtifact` |
+| Three Locks | `Puzzle/RitualSequence/Locks/Lock_01_WatcherPortrait/SilverFangWatcherSocket`, `GatedLocations/Chamber_05_MoonCrypt/Content_Section06/Lock_02_CelestialConsole/MoonstoneOrrerySocket`, `Puzzle/SilverFangQuest/SilverFang_Pedestal/BloodSigilDoorSocket`; trigger Collider + `XRSocketInteractor` |
+| Three Locks required before win | `Puzzle/RitualSequence` (`ManorThreeStagePuzzle`) accepts only the matching artifact ID for the current stage and opens the exit only at 3/3; wrong/early items are rejected with a red light and popped out of the Lock |
+| Reveals | Watcher Lock opens `Puzzle/FiveChamberQuest/WatcherChestReveal` (Codex + map); Moon Crypt sequence moves `MoonstoneSlab_Moving`; Celestial Lock raises `BloodSlab_Moving`; four chamber Reveals via `ManorChamberReveal` |
+| Gate affordance and travel | `Puzzle/FiveChamberQuest/Gates/Gate_01..05` (`ManorGatePortal` + explicit select), `Puzzle/FiveChamberQuest/TravelSystem` (`ManorGateTravelSystem`), `GatedLocations/Chamber_0N_*/TravelShell/ReturnRune` |
+| Five gated locations | `GatedLocations/Chamber_01_Cellar`, `Chamber_02_BoneCloset`, `Chamber_03_CoffinVault`, `Chamber_04_Portrait`, `Chamber_05_MoonCrypt`; each counts once, only after its internal interaction |
+| Puzzle system | `GatedLocations/Chamber_05_MoonCrypt/Content_Section06` (`ManorMoonCryptPuzzle`) with `Button_1_WOLF`, `Button_2_MOON`, `Button_3_BLOOD`; wrong order flashes red and resets, correct order releases the Moonstone once |
+| Puzzle discoverability | Codex ("FOLLOW THE MOON"), five-passage map, Portrait Chamber moon clue, blue-white Moon Gate rune, `SequenceInstruction` wall text, and the board's current objective |
+| Three Red Herrings | `RustyKey_RedHerring` (Cellar), `WoodenFang_RedHerring` (Bone Closet), `BlackRose_RedHerring` (Coffin Vault); grabbable, rejected by every ritual Lock |
+| Progress Scoreboard | `Puzzle/RitualSequence/CluesAndProgress/RitualProgressBoard` driven by `ManorQuestScoreboard`: ritual progress, keys remaining, locks remaining, chambers explored, current objective |
+| Signifiers | Gate runes: dark = locked, purple = false passage, blue-white = Moon passage, green + `EXPLORED` = done; Lock lights: blue = current, green/gold = complete, red flash = wrong item or order |
+| Win Celebration | `Systems/WinFlow` (`WinCelebrationController`): seal and door state change, lights, particles, five-second `CONGRATULATIONS!` |
+
+### Individual Contributions Draft
+
+I built the Michael Manor five-chamber ritual. Three Key Props with a 20:1 mass range (Silver Fang 0.8 kg, Moonstone 0.1 kg, Blood Sigil 2.0 kg) must be placed into three XR socket Locks in order; wrong or early items are rejected with a red light and pushed back out of the Lock. The first Lock opens a chest that reveals a Midnight Codex and a five-passage map and activates five hall Gates. Each Gate is an explicit rune interaction that teleports the XR rig to its own chamber and back through a Return Rune. Four chambers are false leads with their own lever or button Reveal (cellar cache, bone closet, coffin, portrait); three of them release grabbable red herrings (Rusty Key, Wooden Fang, Black Rose) that no Lock accepts. The Moon Crypt holds the puzzle: WOLF, MOON, BLOOD buttons that turn blue when correct and flash red and reset when wrong. The correct order slides a stone slab aside to reveal the Moonstone, and the Moonstone in the Celestial Lock raises a second slab to reveal the Blood Sigil. The in-world board tracks ritual progress, keys and locks remaining, chambers explored (counted only after each chamber's interaction), and the current objective; Gate runes change color and show EXPLORED. Inserting the Blood Sigil opens the exit and plays the Win Celebration.
 
 ## Evidence Map
 

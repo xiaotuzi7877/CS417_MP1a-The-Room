@@ -1,5 +1,6 @@
 using System.Collections;
 using System;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -147,20 +148,32 @@ namespace MichaelManor
 
         // XRI sockets can keep a stale trigger contact for an artifact that was disabled
         // inside them; on reactivation the socket would snap it back from any distance.
+        // A rejected item is also refused briefly: sockets re-select on the very next frame,
+        // which would hold it kinematic in the Lock forever.
         private const float SocketReachDistance = 1.0f;
-        private readonly XRHoverFilterDelegate nearbyHoverFilter =
-            new XRHoverFilterDelegate((interactor, interactable) => IsNearSocket(interactor.transform, interactable.transform));
-        private readonly XRSelectFilterDelegate nearbySelectFilter =
-            new XRSelectFilterDelegate((interactor, interactable) => IsNearSocket(interactor.transform, interactable.transform));
+        private const float RejectCooldown = 1.2f;
+        private readonly System.Collections.Generic.Dictionary<Transform, float> rejectedUntil =
+            new System.Collections.Generic.Dictionary<Transform, float>();
+        private XRHoverFilterDelegate nearbyHoverFilter;
+        private XRSelectFilterDelegate nearbySelectFilter;
 
-        private static bool IsNearSocket(Transform socket, Transform artifact)
+        private bool CanSocketTake(Transform socket, Transform artifact)
         {
-            return socket != null && artifact != null &&
-                   Vector3.Distance(socket.position, artifact.position) <= SocketReachDistance;
+            if (socket == null || artifact == null ||
+                Vector3.Distance(socket.position, artifact.position) > SocketReachDistance)
+            {
+                return false;
+            }
+
+            return !rejectedUntil.TryGetValue(artifact, out float until) || Time.time >= until;
         }
 
         private void OnEnable()
         {
+            nearbyHoverFilter ??= new XRHoverFilterDelegate((interactor, interactable) =>
+                CanSocketTake(interactor.transform, interactable.transform));
+            nearbySelectFilter ??= new XRSelectFilterDelegate((interactor, interactable) =>
+                CanSocketTake(interactor.transform, interactable.transform));
             if (sockets == null)
             {
                 return;
@@ -205,6 +218,7 @@ namespace MichaelManor
             if (isAnimating || stageIndex != currentStage || artifact == null ||
                 !IsRequiredArtifact(stageIndex, artifact))
             {
+                rejectedUntil[args.interactableObject.transform] = Time.time + RejectCooldown;
                 StartCoroutine(RejectSelection(selectedSocket, args.interactableObject));
                 return;
             }
@@ -448,12 +462,31 @@ namespace MichaelManor
             yield return null;
             if (socket != null && interactable != null && socket.interactionManager != null)
             {
-                socket.interactionManager.SelectExit(
-                    (IXRSelectInteractor)socket,
-                    interactable);
+                if (socket.IsSelecting(interactable))
+                {
+                    socket.interactionManager.SelectExit(
+                        (IXRSelectInteractor)socket,
+                        interactable);
+                }
+
+                // A released relic left inside the trigger (often asleep) would be re-selected and
+                // rejected forever, blocking the Lock; once XRI has finished detaching, pop it out.
+                yield return new WaitForSeconds(0.1f);
+                Rigidbody body = interactable.transform.GetComponent<Rigidbody>();
+                if (body != null && !body.isKinematic)
+                {
+                    body.WakeUp();
+                    Vector3 away = interactable.transform.position - socket.transform.position;
+                    away.y = 0f;
+                    if (away.sqrMagnitude < 0.0001f)
+                    {
+                        away = -socket.transform.forward;
+                    }
+                    body.linearVelocity = away.normalized * 1.8f + Vector3.up * 1.4f;
+                }
             }
 
-            yield return new WaitForSeconds(0.45f);
+            yield return new WaitForSeconds(0.35f);
             if (light != null)
             {
                 light.color = previousColor;
@@ -619,11 +652,14 @@ namespace MichaelManor
                     ? artifact.GetComponent<XRGrabInteractable>()
                     : null;
 
-                if (socket != null && socket.hasSelection && socket.interactionManager != null && grab != null)
+                // Release anything the socket holds, including a false relic whose rejection
+                // coroutine was stopped by this reset.
+                if (socket != null && socket.hasSelection && socket.interactionManager != null)
                 {
-                    socket.interactionManager.SelectExit(
-                        (IXRSelectInteractor)socket,
-                        (IXRSelectInteractable)grab);
+                    foreach (IXRSelectInteractable held in socket.interactablesSelected.ToArray())
+                    {
+                        socket.interactionManager.SelectExit((IXRSelectInteractor)socket, held);
+                    }
                 }
 
                 if (artifact != null)

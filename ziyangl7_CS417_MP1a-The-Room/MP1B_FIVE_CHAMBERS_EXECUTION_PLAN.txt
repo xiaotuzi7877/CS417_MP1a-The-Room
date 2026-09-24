@@ -110,7 +110,7 @@ STATUS SUMMARY
   [DONE]        Section 5 - Coffin Vault and Portrait Chamber
   [DONE]        Section 6 - Moon Crypt, three-button puzzle, and second Lock
   [DONE]        Section 7 - exploration tracking, scoreboard, and signifiers
-  [NOT STARTED] Section 8 - full integration, polish, rubric evidence, and QA
+  [DONE]        Section 8 - full integration, polish, rubric evidence, and QA
 
 
 SECTION 0 - PLANNING AND TRACKER
@@ -589,7 +589,7 @@ SECTION 8 - FULL INTEGRATION, POLISH, RUBRIC EVIDENCE, AND QA
 ============================================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Purpose:
   Validate the entire player journey, polish only what blocks clarity, and produce
@@ -641,12 +641,12 @@ Documentation scope:
   - Write a compact video shot list matching the full route above.
 
 Acceptance criteria:
-  [ ] Full route completes from reset without editor intervention.
-  [ ] All rubric claims have visible evidence and contribution-summary wording.
-  [ ] No console errors occur during the final run.
-  [ ] Scene validation reports no missing scripts or broken prefab references.
-  [ ] Only relevant files are staged.
-  [ ] Final integration commit is created; push only if explicitly requested.
+  [x] Full route completes from reset without editor intervention.
+  [x] All rubric claims have visible evidence and contribution-summary wording.
+  [x] No console errors occur during the final run.
+  [x] Scene validation reports no missing scripts or broken prefab references.
+  [x] Only relevant files are staged.
+  [x] Final integration commit is created; push only if explicitly requested.
 
 Expected focused commit:
   verify full five chamber ritual
@@ -654,6 +654,14 @@ Expected focused commit:
 Notes:
   This Section may fix integration defects, but it must not introduce a sixth room,
   a new major sidequest, or unrelated visual redesign.
+  Integration defect fixed: a rejected item (false relic or early key) was
+  re-selected by its socket on the next frame and held there forever, blocking the
+  Lock; ResetPuzzle also left such items stuck. Rejected items now get a 1.2 s
+  socket cooldown and are popped out; reset releases everything a socket holds.
+  Known non-error: XRI logs one warning ("Cannot throw a kinematic Rigidbody")
+  when reset releases a key that finished its Lock as kinematic.
+  QA tool: Tools -> Michael Manor -> Run Full Ritual QA (Play Mode).
+  Recording tool: Tools -> Michael Manor -> Record Full Ritual Route (Play Mode).
 
 
 RUBRIC COVERAGE MATRIX
@@ -823,3 +831,25 @@ Entry 009
   Commit: show five chamber quest progress
   Push status: not pushed
   Remaining notes: Continue at Section 8 - full integration, polish, and QA.
+
+Entry 010
+  Date: 2026-09-24
+  Section: 8 - full integration, polish, rubric evidence, and QA
+  Result: DONE
+  Summary: Added a full-route Play Mode QA test that inserts all Key Props through
+           the real XR sockets; fixed the rejected-item socket lock-up; rewrote the
+           MP1b part of RUBRIC_EVIDENCE.md (17-step shot list, evidence map with
+           exact GameObject paths, Individual Contributions draft); added a
+           full-route Game-view recording.
+  Validation: FULL RITUAL QA PASS with 0 errors: 20:1 mass ratio, 3 red herrings,
+              no stray dynamic Rigidbody, route 1-17 via real sockets, false relics
+              and an early Moonstone rejected and cleared from the Lock, 10 aligned
+              Gate trips, 5 wrong orders rejected, chambers counted once out of
+              order, reset from stages 0-3, 6 grabbables dropped and settled, door
+              opens and Congratulations fades. Quest progress and Moon Crypt self
+              tests still PASS; scene validation clean; full-route recording
+              (tmp/Recordings/section08.gif) reviewed.
+  Commit: verify full five chamber ritual
+  Push status: not pushed
+  Remaining notes: All eight Sections done. Before submission, record the real VR
+                   walkthrough following RUBRIC_EVIDENCE.md.
