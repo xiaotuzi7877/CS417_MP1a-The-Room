@@ -185,11 +185,16 @@ SECTION 17 - REVERSED HANDMIRROR
 ================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Scope:
   - Add a grabbable handmirror with its own Camera and RenderTexture.
   - Reverse the displayed image left-to-right and provide mirrored clue text.
+
+Acceptance:
+  [x] Handmirror is a Rigidbody + Collider + XRGrabInteractable prop.
+  [x] Child Camera renders into a persistent 512x512 RenderTexture.
+  [x] Mirror material uses negative horizontal texture scale and Play Mode test passes.
 
 Expected commit:
   add reversed vr handmirror
