@@ -146,12 +146,17 @@ SECTION 15 - ANGLE REVEALED INVISIBLE WRITING
 ==============================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Scope:
   - Add a custom fragment shader whose writing becomes readable only from a
     deliberately oblique viewing angle.
   - Place an instructional inspection plaque and verify the effect in Play Mode.
+
+Acceptance:
+  [x] Custom fragment shader controls visibility from the view angle.
+  [x] Frontal visibility is near zero and oblique visibility is full.
+  [x] Dedicated Play Mode test and scene validation pass.
 
 Expected commit:
   add angle revealed writing
