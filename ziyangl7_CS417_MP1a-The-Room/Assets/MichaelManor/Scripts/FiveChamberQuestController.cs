@@ -19,6 +19,7 @@ namespace MichaelManor
 
         public event Action<bool> GateAvailabilityChanged;
         public event Action<int, int> ExplorationChanged;
+        public event Action QuestReset;
 
         public bool GatesUnlocked => gatesUnlocked;
         public int ChamberCount => RequiredChamberCount;
@@ -101,6 +102,7 @@ namespace MichaelManor
             GateAvailabilityChanged?.Invoke(false);
             ExplorationChanged?.Invoke(0, RequiredChamberCount);
             onStateChanged.Invoke();
+            QuestReset?.Invoke();
         }
 
         private void EnsureStateArrays()

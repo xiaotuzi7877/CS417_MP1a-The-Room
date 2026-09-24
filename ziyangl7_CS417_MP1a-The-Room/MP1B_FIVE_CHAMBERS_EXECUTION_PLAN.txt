@@ -106,7 +106,7 @@ STATUS SUMMARY
   [DONE]        Section 1 - shared quest, chamber, and gate foundation
   [DONE]        Section 2 - Watcher Lock chest Reveal and Midnight Codex
   [DONE]        Section 3 - five hall Gates, teleport travel, and Return Runes
-  [NOT STARTED] Section 4 - Cellar Cache and Bone Closet
+  [DONE]        Section 4 - Cellar Cache and Bone Closet
   [NOT STARTED] Section 5 - Coffin Vault and Portrait Chamber
   [NOT STARTED] Section 6 - Moon Crypt, three-button puzzle, and second Lock
   [NOT STARTED] Section 7 - exploration tracking, scoreboard, and signifiers
@@ -313,7 +313,7 @@ SECTION 4 - CELLAR CACHE AND BONE CLOSET
 ========================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Purpose:
   Complete two valid gated locations and two clearly false Red Herrings using the
@@ -347,15 +347,15 @@ Chamber 2 - Bone Closet:
   - Wooden Fang uses the same Red Herring requirements as Rusty Key.
 
 Acceptance criteria:
-  [ ] Each chamber contains one interaction unavailable before Gate travel.
-  [ ] Explored state increments only after the internal interaction succeeds.
-  [ ] Repeating the interaction does not increment twice.
-  [ ] Both false relics can be grabbed and tumble physically.
-  [ ] Neither false relic is accepted by a ritual Lock.
-  [ ] Player quickly receives clear FALSE RELIC feedback.
-  [ ] Return Runes remain usable.
-  [ ] Existing Key Prop max:min mass ratio remains exactly 20:1.
-  [ ] Play Mode console has zero errors.
+  [x] Each chamber contains one interaction unavailable before Gate travel.
+  [x] Explored state increments only after the internal interaction succeeds.
+  [x] Repeating the interaction does not increment twice.
+  [x] Both false relics can be grabbed and tumble physically.
+  [x] Neither false relic is accepted by a ritual Lock.
+  [x] Player quickly receives clear FALSE RELIC feedback.
+  [x] Return Runes remain usable.
+  [x] Existing Key Prop max:min mass ratio remains exactly 20:1.
+  [x] Play Mode console has zero errors.
 
 Rubric evidence created by this Section:
   - two Gated Locations
@@ -365,7 +365,9 @@ Expected focused commit:
   add cellar and bone closet chambers
 
 Notes:
-  None.
+  Cellar uses an explicit lever and eased cache lid Reveal for a 0.65 kg Rusty
+  Key. Bone Closet uses an explicit glowing button and eased compartment Reveal
+  for a 0.40 kg Wooden Fang. Both show room-scale FALSE RELIC feedback and reset.
 
 
 SECTION 5 - COFFIN VAULT AND PORTRAIT CHAMBER
@@ -714,3 +716,17 @@ Entry 004
   Commit: build reusable five gate travel
   Push status: not pushed
   Remaining notes: Section 4 fills Cellar and Bone Closet with valid interactions.
+
+Entry 005
+  Date: 2026-09-23
+  Section: 4 - Cellar Cache and Bone Closet
+  Result: DONE
+  Summary: Built two themed gated chambers, explicit lever/button interactions,
+           eased physical Reveals, two grabbable false relics, and readable feedback.
+  Validation: Exploration advanced exactly once per chamber to 2/5; duplicates
+              were rejected; both Return Runes worked; false IDs matched no ritual
+              Lock; all Key Props retained the exact 20:1 mass ratio; original
+              three-stage ritual passed; zero console errors.
+  Commit: add cellar and bone closet chambers
+  Push status: not pushed
+  Remaining notes: Continue at Section 5 - Coffin Vault and Portrait Chamber.

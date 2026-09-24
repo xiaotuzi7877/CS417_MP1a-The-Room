@@ -19,6 +19,7 @@ namespace MichaelManor
 
         public int ChamberIndex => chamberIndex;
         public bool IsCompleted => completed;
+        public FiveChamberQuestController QuestController => questController;
         public UnityEvent OnFirstCompleted => onFirstCompleted;
 
         public void Configure(
