@@ -17,6 +17,7 @@ namespace MichaelManor
         [SerializeField] private XRSocketInteractor[] sockets;
         [SerializeField] private string[] requiredArtifactIds;
         [SerializeField] private ManorKeyArtifact[] artifacts;
+        [SerializeField] private bool[] autoRevealArtifacts;
         [SerializeField] private Transform[] revealBarriers;
         [SerializeField] private Vector3[] solvedBarrierLocalPositions;
         [SerializeField] private Vector3[] solvedBarrierLocalEulerAngles;
@@ -50,6 +51,8 @@ namespace MichaelManor
         public int CurrentStage => currentStage;
         public int StageCount => sockets != null ? sockets.Length : 0;
         public bool IsComplete => StageCount > 0 && currentStage >= StageCount;
+        public TMP_Text ProgressText => progressText;
+        public TMP_Text InstructionText => instructionText;
         public event Action<int> StageCompleted;
         public event Action PuzzleReset;
 
@@ -72,6 +75,11 @@ namespace MichaelManor
             sockets = puzzleSockets;
             requiredArtifactIds = artifactIds;
             artifacts = keyArtifacts;
+            autoRevealArtifacts = new bool[keyArtifacts != null ? keyArtifacts.Length : 0];
+            for (int i = 0; i < autoRevealArtifacts.Length; i++)
+            {
+                autoRevealArtifacts[i] = i > 0;
+            }
             revealBarriers = movingBarriers;
             solvedBarrierLocalPositions = barrierSolvedPositions;
             solvedBarrierLocalEulerAngles = barrierSolvedEulerAngles;
@@ -83,6 +91,32 @@ namespace MichaelManor
             exitDoor = finalDoor;
             exitDoorSeal = finalDoorSeal;
             celebration = winCelebration;
+        }
+
+        public void SetArtifactAutoReveal(int artifactIndex, bool autoReveal)
+        {
+            EnsureAutoRevealArray();
+            if (artifactIndex >= 0 && artifactIndex < autoRevealArtifacts.Length)
+            {
+                autoRevealArtifacts[artifactIndex] = autoReveal;
+            }
+        }
+
+        public void ConfigureStageReveal(
+            int stageIndex,
+            Transform movingBarrier,
+            Vector3 solvedPosition,
+            Vector3 solvedEuler)
+        {
+            if (stageIndex < 0 || stageIndex >= StageCount)
+            {
+                return;
+            }
+
+            revealBarriers[stageIndex] = movingBarrier;
+            solvedBarrierLocalPositions[stageIndex] = solvedPosition;
+            solvedBarrierLocalEulerAngles[stageIndex] = solvedEuler;
+            cached = false;
         }
 
         private void Awake()
@@ -220,7 +254,11 @@ namespace MichaelManor
             StageCompleted?.Invoke(stageIndex);
             if (currentStage < StageCount)
             {
-                yield return RevealArtifact(currentStage);
+                EnsureAutoRevealArray();
+                if (currentStage < autoRevealArtifacts.Length && autoRevealArtifacts[currentStage])
+                {
+                    yield return RevealArtifact(currentStage);
+                }
                 ActivateCurrentStageLight();
                 UpdateGuidance();
             }
@@ -407,6 +445,28 @@ namespace MichaelManor
             StartCoroutine(SolveAllPresentationRoutine());
         }
 
+        public bool SolveCurrentStageForPresentation()
+        {
+            CacheStartState();
+            if (isAnimating || currentStage < 0 || currentStage >= StageCount)
+            {
+                return false;
+            }
+
+            ManorKeyArtifact artifact = GetAt(artifacts, currentStage);
+            XRSocketInteractor socket = GetAt(sockets, currentStage);
+            if (artifact == null || socket == null)
+            {
+                return false;
+            }
+
+            artifact.gameObject.SetActive(true);
+            Transform anchor = socket.attachTransform != null ? socket.attachTransform : socket.transform;
+            artifact.transform.SetPositionAndRotation(anchor.position, anchor.rotation);
+            BeginStage(currentStage, artifact);
+            return true;
+        }
+
         private IEnumerator SolveAllPresentationRoutine()
         {
             yield return null;
@@ -499,6 +559,26 @@ namespace MichaelManor
             }
 
             cached = true;
+        }
+
+        private void EnsureAutoRevealArray()
+        {
+            int count = artifacts != null ? artifacts.Length : 0;
+            if (autoRevealArtifacts != null && autoRevealArtifacts.Length == count)
+            {
+                return;
+            }
+
+            bool[] resized = new bool[count];
+            for (int i = 0; i < resized.Length; i++)
+            {
+                resized[i] = i > 0;
+            }
+            if (autoRevealArtifacts != null)
+            {
+                Array.Copy(autoRevealArtifacts, resized, Mathf.Min(autoRevealArtifacts.Length, resized.Length));
+            }
+            autoRevealArtifacts = resized;
         }
 
         private void ApplyResetState()
@@ -602,8 +682,8 @@ namespace MichaelManor
             string[] clues =
             {
                 "STEP I\nTAKE THE SILVER FANG FROM THE TABLE - PLACE IT IN THE GLOWING WATCHER LOCK",
-                "STEP II\nTAKE THE REVEALED MOONSTONE - RETURN IT TO THE CELESTIAL CONSOLE",
-                "STEP III\nTAKE THE BLOOD SIGIL FROM THE OPEN RELIQUARY - PLACE IT IN THE EXIT PEDESTAL"
+                "STEP II\nFIND THE MOON-MARKED CHAMBER - PRESS WOLF, MOON, BLOOD - PLACE THE MOONSTONE IN THE CELESTIAL LOCK",
+                "STEP III\nTAKE THE BLOOD SIGIL FROM THE MOON CRYPT - RETURN - PLACE IT IN THE EXIT PEDESTAL"
             };
             instructionText.text = currentStage < clues.Length
                 ? clues[currentStage]

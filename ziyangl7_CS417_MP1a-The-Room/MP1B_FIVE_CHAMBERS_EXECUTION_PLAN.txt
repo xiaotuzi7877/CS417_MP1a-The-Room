@@ -107,8 +107,8 @@ STATUS SUMMARY
   [DONE]        Section 2 - Watcher Lock chest Reveal and Midnight Codex
   [DONE]        Section 3 - five hall Gates, teleport travel, and Return Runes
   [DONE]        Section 4 - Cellar Cache and Bone Closet
-  [NOT STARTED] Section 5 - Coffin Vault and Portrait Chamber
-  [NOT STARTED] Section 6 - Moon Crypt, three-button puzzle, and second Lock
+  [DONE]        Section 5 - Coffin Vault and Portrait Chamber
+  [DONE]        Section 6 - Moon Crypt, three-button puzzle, and second Lock
   [NOT STARTED] Section 7 - exploration tracking, scoreboard, and signifiers
   [NOT STARTED] Section 8 - full integration, polish, rubric evidence, and QA
 
@@ -437,7 +437,7 @@ SECTION 6 - MOON CRYPT, THREE-BUTTON PUZZLE, AND SECOND LOCK
 ============================================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Purpose:
   Build the single substantial new puzzle, relocate the Moonstone reveal into the
@@ -483,17 +483,17 @@ Second Lock:
     are still exactly three required Lock completions before winning.
 
 Acceptance criteria:
-  [ ] Moon Crypt is the fifth valid gated location.
-  [ ] Wrong sequences reset reliably and do not release Moonstone.
-  [ ] Wolf -> Moon -> Blood releases Moonstone exactly once.
-  [ ] The slab visibly obstructs Moonstone before puzzle completion.
-  [ ] Moonstone still has mass 0.10 kg and remains grabbable.
-  [ ] Celestial Lock accepts Moonstone and rejects false relics.
-  [ ] Second slab visibly reveals Blood Sigil.
-  [ ] Blood Sigil still has mass 2.00 kg and remains grabbable.
-  [ ] Ritual progress becomes 2/3 after Celestial Lock completion.
-  [ ] Return Rune takes the player back to the hall.
-  [ ] Play Mode console has zero errors.
+  [x] Moon Crypt is the fifth valid gated location.
+  [x] Wrong sequences reset reliably and do not release Moonstone.
+  [x] Wolf -> Moon -> Blood releases Moonstone exactly once.
+  [x] The slab visibly obstructs Moonstone before puzzle completion.
+  [x] Moonstone still has mass 0.10 kg and remains grabbable.
+  [x] Celestial Lock accepts Moonstone and rejects false relics.
+  [x] Second slab visibly reveals Blood Sigil.
+  [x] Blood Sigil still has mass 2.00 kg and remains grabbable.
+  [x] Ritual progress becomes 2/3 after Celestial Lock completion.
+  [x] Return Rune takes the player back to the hall.
+  [x] Play Mode console has zero errors.
 
 Rubric evidence created by this Section:
   - fifth Gated Location
@@ -506,6 +506,10 @@ Expected focused commit:
 
 Notes:
   This is the highest-risk Section and must not be combined with Section 7.
+  Moonstone slab moved in front of the vault side walls (vault z 3.6, slab local
+  z -0.75) so its slide path no longer clips VaultLeft or MoonPillarLeft.
+  False-relic rejection relies on the existing ArtifactId check; no false relic
+  shares an id with any Lock.
 
 
 SECTION 7 - EXPLORATION TRACKING, SCOREBOARD, AND SIGNIFIERS
@@ -748,3 +752,24 @@ Entry 006
   Commit: add coffin and portrait chambers
   Push status: not pushed
   Remaining notes: Continue at Section 6 - Moon Crypt, sequence, and second Lock.
+
+Entry 007
+  Date: 2026-09-23
+  Section: 6 - Moon Crypt, three-button puzzle, and second Lock
+  Result: DONE
+  Summary: Built the Moon Crypt as the fifth gated chamber with WOLF/MOON/BLOOD
+           buttons, visible order instruction, eased Moonstone slab Reveal, labeled
+           Celestial Lock, eased Blood Sigil slab Reveal, and golden Return Rune.
+           Watcher Lock no longer auto-reveals Moonstone; the existing ritual
+           controller was adapted so exactly three Locks are still required.
+  Validation: Scripts compiled with zero errors; Moon Crypt self test PASS with
+              zero console errors (wrong orders reset without release, correct
+              order released Moonstone once and was one-shot, Moonstone 0.10 kg and
+              Blood Sigil 2.00 kg grabbable, progress 2/3, Blood slab moved, Return
+              Rune returned); Lock 3 then triggered the Win Celebration; slab sweep
+              found no collider overlaps; screenshots confirmed readable text and a
+              fully obstructed Moonstone before solving.
+  Commit: build moon crypt button puzzle
+  Push status: not pushed
+  Remaining notes: Continue at Section 7 - exploration tracking, scoreboard, and
+                   signifiers.
