@@ -36,7 +36,7 @@ namespace MichaelManorEditor
             material.SetColor("_FaceColor", new Color(0.42f,0.92f,1f,1f)); EditorUtility.SetDirty(material);
             hidden.fontSharedMaterial = material;
             root.gameObject.AddComponent<ManorAngleRevealMarker>().Configure(hidden);
-            EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene); AssetDatabase.SaveAssets();
+            EditorSceneManager.MarkSceneDirty(scene); ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene); AssetDatabase.SaveAssets();
             Debug.Log("Installed fragment-shader angle revealed writing inspection plaque.");
         }
 

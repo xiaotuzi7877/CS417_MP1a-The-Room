@@ -143,7 +143,7 @@ namespace MichaelManorEditor
             EditorUtility.SetDirty(reveal);
             EditorUtility.SetDirty(chamberQuest);
             EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
+            ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
             Debug.Log("Installed the Watcher chest physical Reveal, Midnight Codex, and five-passage map.");
         }

@@ -150,7 +150,7 @@ namespace MichaelManorEditor
             EditorUtility.SetDirty(ritual);
             EditorUtility.SetDirty(puzzle);
             EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
+            ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
             Debug.Log("Installed Moon Crypt Wolf-Moon-Blood puzzle, Moonstone reveal, Celestial Lock, and Blood Sigil reveal.");
         }

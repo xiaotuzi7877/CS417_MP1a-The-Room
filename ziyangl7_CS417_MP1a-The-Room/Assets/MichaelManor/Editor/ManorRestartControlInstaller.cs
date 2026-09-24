@@ -62,7 +62,7 @@ namespace MichaelManorEditor
             ManorRitualRestartControl control = button.AddComponent<ManorRitualRestartControl>();
             control.Configure(ritual, quest, travel, returnRune.HallReturnAnchor, label, ring.transform, 2f);
             EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
+            ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);
             Debug.Log("Installed deliberate two-second world-space VR restart control beside the mission wall.");
         }
 

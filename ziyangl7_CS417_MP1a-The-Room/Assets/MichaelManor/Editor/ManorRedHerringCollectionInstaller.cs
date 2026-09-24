@@ -32,7 +32,7 @@ namespace MichaelManorEditor
                     CreateRelic(group, index, new Vector3(slot == 0 ? -2.7f : 2.7f, 0.75f, -0.65f + chamberIndex * 0.12f), materials[index % materials.Length]);
                 }
             }
-            EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
+            EditorSceneManager.MarkSceneDirty(scene); ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);
             Debug.Log("Installed ten additional unique false relics for thirteen total Red Herrings.");
         }
 

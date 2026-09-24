@@ -37,7 +37,7 @@ namespace MichaelManorEditor
             Camera camera=cameraObject.AddComponent<Camera>();camera.fieldOfView=22f;camera.nearClipPlane=0.08f;camera.farClipPlane=35f;camera.targetTexture=texture;camera.depth=-6f;
             root.AddComponent<ManorMagnifyingGlass>().Configure(camera,surface,texture);
             Text(group,"MagnifierLabel",new Vector3(2.1f,2.05f,-6.8f),"MAGNIFYING GLASS\nNARROW 22 DEGREE VIEW",0.27f,new Color(0.52f,0.92f,1f));
-            EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);AssetDatabase.SaveAssets();Debug.Log("Installed grabbable RenderTexture magnifying glass with narrow field of view.");
+            EditorSceneManager.MarkSceneDirty(scene);ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);AssetDatabase.SaveAssets();Debug.Log("Installed grabbable RenderTexture magnifying glass with narrow field of view.");
         }
 
         [MenuItem("Tools/Michael Manor/Test VR Magnifying Glass (Play Mode)")]

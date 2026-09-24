@@ -83,8 +83,47 @@ namespace MichaelManorEditor
             }
 
             EditorUtility.SetDirty(first); EditorUtility.SetDirty(third); EditorUtility.SetDirty(tracker);
-            EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
+            EditorSceneManager.MarkSceneDirty(scene); ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);
             Debug.Log("Installed three genuine key-release puzzles plus 3/3 puzzle and clue discovery scoreboard.");
+        }
+
+        /// The display top used a dome-shaped capsule collider and the Fang stood upright on it, so the
+        /// Fang tipped over and rolled onto the floor at start and after every reset. Give the top a
+        /// flat collider matching its visible disc and lay the Fang flat on it.
+        [MenuItem("Tools/Michael Manor/Fix Silver Fang Display")]
+        public static void FixSilverFangDisplay()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            Transform top = Find(scene, "DisplayTop");
+            ManorKeyArtifact fang = Artifact("SilverFang");
+            if (top == null || fang == null) { Debug.LogError("Silver Fang display fix: DisplayTop or Silver Fang missing."); return; }
+
+            CapsuleCollider dome = top.GetComponent<CapsuleCollider>();
+            if (dome != null) Object.DestroyImmediate(dome);
+            BoxCollider flat = top.GetComponent<BoxCollider>();
+            if (flat == null) flat = top.gameObject.AddComponent<BoxCollider>();
+            flat.center = Vector3.zero;
+            flat.size = new Vector3(1f, 2f, 1f);   // unit cylinder bounds: flat disc of the visible size
+
+            CapsuleCollider capsule = fang.GetComponent<CapsuleCollider>();
+            float surface = top.GetComponent<Renderer>().bounds.max.y;
+            Quaternion lying = Quaternion.Euler(0f, 0f, 90f);           // capsule axis horizontal
+            Vector3 centerOffset = lying * Vector3.Scale(capsule.center, fang.transform.lossyScale);
+            Vector3 topCenter = top.GetComponent<Renderer>().bounds.center;
+            float radius = capsule.radius * fang.transform.lossyScale.x;
+            fang.transform.SetPositionAndRotation(
+                new Vector3(topCenter.x, surface + radius + 0.005f, topCenter.z) - centerOffset, lying);
+
+            // The Fang is longer than the tabletop and its mass sits off-centre, so a dynamic body
+            // slowly slides off. Keep it still on display; it gets normal physics once released.
+            fang.GetComponent<Rigidbody>().isKinematic = true;
+            if (fang.GetComponent<ManorRestUntilGrabbed>() == null) fang.gameObject.AddComponent<ManorRestUntilGrabbed>();
+
+            EditorUtility.SetDirty(top.gameObject);
+            EditorUtility.SetDirty(fang.transform);
+            EditorSceneManager.MarkSceneDirty(scene);
+            ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);
+            Debug.Log("Silver Fang now rests flat on a flat display top.");
         }
 
         [MenuItem("Tools/Michael Manor/Test Three Key Release Puzzles (Play Mode)")]

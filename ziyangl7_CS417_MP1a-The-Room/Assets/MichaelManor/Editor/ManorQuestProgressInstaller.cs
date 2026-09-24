@@ -60,7 +60,7 @@ namespace MichaelManorEditor
 
             EditorUtility.SetDirty(board);
             EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
+            ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);
             Debug.Log("Installed quest progress board, Gate EXPLORED signifiers, and hall-facing clue plaques.");
         }
 

@@ -37,7 +37,7 @@ namespace MichaelManorEditor
             Material material=AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);if(material==null){material=new Material(shader);AssetDatabase.CreateAsset(material,MaterialPath);}
             material.shader=shader;material.SetTexture("_MainTex",hidden.fontMaterial.GetTexture("_MainTex"));material.SetColor("_FaceColor",new Color(0.72f,0.25f,1f,1f));EditorUtility.SetDirty(material);hidden.fontSharedMaterial=material;
             prop.AddComponent<ManorBlacklightController>().Configure(origin,light,hidden,7f);
-            EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);AssetDatabase.SaveAssets();Debug.Log("Installed grabbable directional Blacklight and UV-only clue writing.");
+            EditorSceneManager.MarkSceneDirty(scene);ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);AssetDatabase.SaveAssets();Debug.Log("Installed grabbable directional Blacklight and UV-only clue writing.");
         }
 
         [MenuItem("Tools/Michael Manor/Test Directional Blacklight (Play Mode)")]

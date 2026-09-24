@@ -40,7 +40,7 @@ namespace MichaelManorEditor
 
             TextMeshPro clue=Text(group,"ReversedMirrorClue",new Vector3(-7.70f,2.2f,1.8f),"THGIR NEHT ,TFEL",0.38f,new Color(0.68f,0.88f,1f));clue.transform.rotation=Quaternion.Euler(0f,90f,0f);
             Text(group,"HandmirrorLabel",new Vector3(-2.3f,2.05f,-7.9f),"HANDMIRROR\nREAD THE REVERSED CLUE",0.28f,new Color(1f,0.72f,0.28f));
-            EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);AssetDatabase.SaveAssets();Debug.Log("Installed grabbable RenderTexture Handmirror with horizontally reversed image.");
+            EditorSceneManager.MarkSceneDirty(scene);ManorTextOrientationFixer.Apply(); EditorSceneManager.SaveScene(scene);AssetDatabase.SaveAssets();Debug.Log("Installed grabbable RenderTexture Handmirror with horizontally reversed image.");
         }
 
         [MenuItem("Tools/Michael Manor/Test Reversed Handmirror (Play Mode)")]
