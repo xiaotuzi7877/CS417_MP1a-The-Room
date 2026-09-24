@@ -104,7 +104,7 @@ STATUS SUMMARY
 
   [DONE]        Section 0 - planning and tracker
   [DONE]        Section 1 - shared quest, chamber, and gate foundation
-  [NOT STARTED] Section 2 - Watcher Lock chest Reveal and Midnight Codex
+  [DONE]        Section 2 - Watcher Lock chest Reveal and Midnight Codex
   [NOT STARTED] Section 3 - five hall Gates, teleport travel, and Return Runes
   [NOT STARTED] Section 4 - Cellar Cache and Bone Closet
   [NOT STARTED] Section 5 - Coffin Vault and Portrait Chamber
@@ -196,7 +196,7 @@ SECTION 2 - WATCHER LOCK CHEST REVEAL AND MIDNIGHT CODEX
 ========================================================
 
 Status:
-  NOT STARTED
+  DONE
 
 Purpose:
   Make the first Lock create an obvious physical Reveal and teach the five-Gate
@@ -231,13 +231,13 @@ Implementation scope:
   - Keep the Codex simple; no page-turning system.
 
 Acceptance criteria:
-  [ ] Before Lock 1, the lid visibly obstructs the Codex and map.
-  [ ] Lock 1 opens the lid; teleporting/spawning alone is not used as the Reveal.
-  [ ] Lid animation is eased, not an instant position jump.
-  [ ] Gate availability changes only after Lock 1.
-  [ ] Reset restores the closed lid and hidden/restricted contents.
-  [ ] Existing Lock 1 sequence still records ritual progress 1/3.
-  [ ] Play Mode console has zero errors.
+  [x] Before Lock 1, the lid visibly obstructs the Codex and map.
+  [x] Lock 1 opens the lid; teleporting/spawning alone is not used as the Reveal.
+  [x] Lid animation is eased, not an instant position jump.
+  [x] Gate availability changes only after Lock 1.
+  [x] Reset restores the closed lid and hidden/restricted contents.
+  [x] Existing Lock 1 sequence still records ritual progress 1/3.
+  [x] Play Mode console has zero errors.
 
 Rubric evidence created by this Section:
   - Reveals
@@ -248,7 +248,9 @@ Expected focused commit:
   reveal codex after watcher lock
 
 Notes:
-  None.
+  Installed the physical Watcher chest on GothicCoffeeTable_Left. Its 1.25-second
+  eased lid Reveal exposes a readable two-page Midnight Codex and five-rune map,
+  then enables all five Gate state holders. Reset closes and relocks everything.
 
 
 SECTION 3 - FIVE HALL GATES, TELEPORT TRAVEL, AND RETURN RUNES
@@ -684,3 +686,16 @@ Entry 002
   Push status: not pushed
   Remaining notes: Section 2 should connect Watcher Lock 1 to the physical chest
                    Reveal, Codex, map, and Gate availability.
+
+Entry 003
+  Date: 2026-09-23
+  Section: 2 - Watcher Lock chest Reveal and Midnight Codex
+  Result: DONE
+  Summary: Added a solid gothic clue chest, separate eased lid, two-page Midnight
+           Codex, five-rune passage map, Lock 1 event hook, and shared Gate unlock.
+  Validation: Closed lid physically hid the contents; Lock 1 opened the lid in
+              1.25 seconds and unlocked 5/5 Gates; reset restored closed/locked;
+              the existing ritual still completed 1/3 through 3/3; zero errors.
+  Commit: reveal codex after watcher lock
+  Push status: not pushed
+  Remaining notes: Section 3 supplies deliberate Gate travel and Return Runes.

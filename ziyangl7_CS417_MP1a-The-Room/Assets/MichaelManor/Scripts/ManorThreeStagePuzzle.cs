@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
@@ -49,6 +50,8 @@ namespace MichaelManor
         public int CurrentStage => currentStage;
         public int StageCount => sockets != null ? sockets.Length : 0;
         public bool IsComplete => StageCount > 0 && currentStage >= StageCount;
+        public event Action<int> StageCompleted;
+        public event Action PuzzleReset;
 
         public void Configure(
             XRSocketInteractor[] puzzleSockets,
@@ -214,6 +217,7 @@ namespace MichaelManor
             SetStatusLight(stageIndex, new Color(0.28f, 1f, 0.58f), 6f);
 
             currentStage++;
+            StageCompleted?.Invoke(stageIndex);
             if (currentStage < StageCount)
             {
                 yield return RevealArtifact(currentStage);
@@ -569,6 +573,7 @@ namespace MichaelManor
             celebration?.ResetCelebration();
             ActivateCurrentStageLight();
             UpdateGuidance();
+            PuzzleReset?.Invoke();
         }
 
         private void ActivateCurrentStageLight()
